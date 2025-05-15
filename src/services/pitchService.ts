@@ -44,7 +44,7 @@ const mockPitches: Pitch[] = [
       { question: 'Tell us about your team.', answer: 'Co-founders with solar engineering and construction backgrounds, previously at Tesla and Sunrun.' },
       { question: 'What are your growth projections?', answer: 'Targeting $5M ARR by end of next year with 30% profit margin.' },
     ],
-    aiSummary: 'EcoTech Solutions is developing a patented solar integration technology for residential buildings that reduces installation costs by 40%. The team has relevant experience from Tesla and Sunrun, with 3 pilot projects and $2M in LOIs. They're seeking $500K seed funding to scale operations.',
+    aiSummary: "EcoTech Solutions is developing a patented solar integration technology for residential buildings that reduces installation costs by 40%. The team has relevant experience from Tesla and Sunrun, with 3 pilot projects and $2M in LOIs. They're seeking $500K seed funding to scale operations.",
     aiScore: 82,
   },
   {
@@ -67,7 +67,7 @@ const mockPitches: Pitch[] = [
       { question: 'Tell us about your team.', answer: 'Co-founders with healthcare and technology backgrounds, previously at Athenahealth and Mass General Hospital.' },
       { question: 'What are your growth projections?', answer: 'Targeting 10,000 users by end of year, $1.2M in revenue next year.' },
     ],
-    aiSummary: 'MediConnect is an AI platform connecting patients with specialists for virtual second opinions, targeting rural areas with limited healthcare access. The founding team has healthcare and tech backgrounds from Athenahealth and MGH. With 500 users and a hospital partnership, they project 10,000 users by year-end and $1.2M revenue next year.',
+    aiSummary: "MediConnect is an AI platform connecting patients with specialists for virtual second opinions, targeting rural areas with limited healthcare access. The founding team has healthcare and tech backgrounds from Athenahealth and MGH. With 500 users and a hospital partnership, they project 10,000 users by year-end and $1.2M revenue next year.",
     aiScore: 75,
   },
   {
@@ -91,7 +91,7 @@ const mockPitches: Pitch[] = [
       { question: 'Tell us about your team.', answer: 'Founding team with logistics and AI background from Amazon and MIT.' },
       { question: 'What are your growth projections?', answer: 'Projecting $5M ARR next year with 70% gross margin.' },
     ],
-    aiSummary: 'SupplyChain.AI offers an AI platform that optimizes logistics to reduce costs and carbon emissions. Founded by ex-Amazon and MIT alumni, they have 12 enterprise customers including Fortune 500 clients, generating $1.2M ARR. They're seeking $3M Series A to scale their technology and target $5M ARR next year with 70% margins.',
+    aiSummary: "SupplyChain.AI offers an AI platform that optimizes logistics to reduce costs and carbon emissions. Founded by ex-Amazon and MIT alumni, they have 12 enterprise customers including Fortune 500 clients, generating $1.2M ARR. They're seeking $3M Series A to scale their technology and target $5M ARR next year with 70% margins.",
     aiScore: 88,
   },
   {
@@ -114,7 +114,7 @@ const mockPitches: Pitch[] = [
       { question: 'Tell us about your team.', answer: 'Former fintech product managers and financial advisors, backed by Y Combinator.' },
       { question: 'What are your growth projections?', answer: 'Targeting 100,000 users by EOY and $2M revenue next year through B2C and B2B channels.' },
     ],
-    aiSummary: 'FinLit is a gamified mobile app teaching financial literacy to young adults through interactive challenges. With 25,000 active users and a 4.8/5 rating, they've secured a major bank partnership. The Y Combinator-backed team has fintech and financial advisory experience and projects 100,000 users by year-end with $2M revenue next year via B2C and B2B channels.',
+    aiSummary: "FinLit is a gamified mobile app teaching financial literacy to young adults through interactive challenges. With 25,000 active users and a 4.8/5 rating, they've secured a major bank partnership. The Y Combinator-backed team has fintech and financial advisory experience and projects 100,000 users by year-end with $2M revenue next year via B2C and B2B channels.",
     aiScore: 79,
   }
 ];
