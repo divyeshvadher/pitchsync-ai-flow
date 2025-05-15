@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
 import InvestorDashboard from "./pages/InvestorDashboard";
+import FounderDashboard from "./pages/FounderDashboard";
 import FounderSubmission from "./pages/FounderSubmission";
 import PitchDetails from "./pages/PitchDetails";
 import SignIn from "./pages/SignIn";
@@ -38,15 +38,15 @@ const App = () => (
             <Route 
               path="/dashboard" 
               element={
-                <ProtectedRoute requiredRole="investor">
-                  <InvestorDashboard />
+                <ProtectedRoute>
+                  <DashboardRouter />
                 </ProtectedRoute>
               } 
             />
             <Route 
               path="/pitch/:id" 
               element={
-                <ProtectedRoute requiredRole="investor">
+                <ProtectedRoute>
                   <PitchDetails />
                 </ProtectedRoute>
               } 
@@ -58,5 +58,18 @@ const App = () => (
     </AuthProvider>
   </QueryClientProvider>
 );
+
+// Dynamic dashboard router based on user role
+function DashboardRouter() {
+  const { isFounder, isInvestor } = useAuth();
+  
+  // Default to founder dashboard if user is founder
+  if (isFounder) {
+    return <FounderDashboard />;
+  }
+  
+  // Otherwise show investor dashboard
+  return <InvestorDashboard />;
+}
 
 export default App;

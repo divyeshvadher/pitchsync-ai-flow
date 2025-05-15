@@ -1,6 +1,5 @@
 
 import { useState } from 'react';
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
@@ -11,13 +10,12 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, isFounder, isInvestor } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/signin');
   };
 
   return (
@@ -40,53 +38,76 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </div>
         
         <nav className="flex-1 p-4">
-          <ul className="space-y-2">
-            <li>
-              <Link 
-                to="/dashboard" 
-                className="flex items-center p-2 text-sidebar-foreground rounded-md hover:bg-sidebar-accent"
-              >
-                <LayoutDashboard size={20} className="mr-3" />
-                {sidebarOpen && <span>Dashboard</span>}
-              </Link>
-            </li>
-            <li>
-              <Link 
-                to="/dashboard?view=search" 
-                className="flex items-center p-2 text-sidebar-foreground rounded-md hover:bg-sidebar-accent"
-              >
-                <Search size={20} className="mr-3" />
-                {sidebarOpen && <span>Search</span>}
-              </Link>
-            </li>
-            <li>
-              <Link 
-                to="/dashboard?view=filter" 
-                className="flex items-center p-2 text-sidebar-foreground rounded-md hover:bg-sidebar-accent"
-              >
-                <Filter size={20} className="mr-3" />
-                {sidebarOpen && <span>Filter</span>}
-              </Link>
-            </li>
-            <li>
-              <Link 
-                to="/dashboard?view=tags" 
-                className="flex items-center p-2 text-sidebar-foreground rounded-md hover:bg-sidebar-accent"
-              >
-                <Tag size={20} className="mr-3" />
-                {sidebarOpen && <span>Tags</span>}
-              </Link>
-            </li>
-            <li>
-              <Link 
-                to="/dashboard?view=calendar" 
-                className="flex items-center p-2 text-sidebar-foreground rounded-md hover:bg-sidebar-accent"
-              >
-                <Calendar size={20} className="mr-3" />
-                {sidebarOpen && <span>Calendar</span>}
-              </Link>
-            </li>
-          </ul>
+          {isInvestor ? (
+            <ul className="space-y-2">
+              <li>
+                <Link 
+                  to="/dashboard" 
+                  className="flex items-center p-2 text-sidebar-foreground rounded-md hover:bg-sidebar-accent"
+                >
+                  <LayoutDashboard size={20} className="mr-3" />
+                  {sidebarOpen && <span>Dashboard</span>}
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/dashboard?view=search" 
+                  className="flex items-center p-2 text-sidebar-foreground rounded-md hover:bg-sidebar-accent"
+                >
+                  <Search size={20} className="mr-3" />
+                  {sidebarOpen && <span>Search</span>}
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/dashboard?view=filter" 
+                  className="flex items-center p-2 text-sidebar-foreground rounded-md hover:bg-sidebar-accent"
+                >
+                  <Filter size={20} className="mr-3" />
+                  {sidebarOpen && <span>Filter</span>}
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/dashboard?view=tags" 
+                  className="flex items-center p-2 text-sidebar-foreground rounded-md hover:bg-sidebar-accent"
+                >
+                  <Tag size={20} className="mr-3" />
+                  {sidebarOpen && <span>Tags</span>}
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/dashboard?view=calendar" 
+                  className="flex items-center p-2 text-sidebar-foreground rounded-md hover:bg-sidebar-accent"
+                >
+                  <Calendar size={20} className="mr-3" />
+                  {sidebarOpen && <span>Calendar</span>}
+                </Link>
+              </li>
+            </ul>
+          ) : (
+            <ul className="space-y-2">
+              <li>
+                <Link 
+                  to="/dashboard" 
+                  className="flex items-center p-2 text-sidebar-foreground rounded-md hover:bg-sidebar-accent"
+                >
+                  <LayoutDashboard size={20} className="mr-3" />
+                  {sidebarOpen && <span>Dashboard</span>}
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/submit" 
+                  className="flex items-center p-2 text-sidebar-foreground rounded-md hover:bg-sidebar-accent"
+                >
+                  <Tag size={20} className="mr-3" />
+                  {sidebarOpen && <span>Submit Pitch</span>}
+                </Link>
+              </li>
+            </ul>
+          )}
         </nav>
         
         <div className="p-4 border-t border-sidebar-border">

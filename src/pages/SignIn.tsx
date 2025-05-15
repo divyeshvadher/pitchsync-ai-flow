@@ -46,9 +46,8 @@ const SignIn = () => {
         description: "Welcome back to PitchSync!",
       });
       
-      // Navigation based on user role is now handled by the ProtectedRoute component
-      // and determined from the profile data
-      navigate('/dashboard');
+      // Note: The navigation is now handled by the signIn function directly
+      // with window.location.href = '/dashboard'
     } catch (error) {
       // Error is handled in the auth context
       setIsLoading(false);

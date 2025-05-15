@@ -11,7 +11,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children, 
   requiredRole 
 }) => {
-  const { isAuthenticated, loading, isInvestor, isFounder } = useAuth();
+  const { isAuthenticated, loading, isInvestor, isFounder, profile } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -30,7 +30,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Role-based access control
   if (requiredRole) {
     if (requiredRole === 'investor' && !isInvestor) {
-      return <Navigate to="/submit" replace />;
+      return <Navigate to="/dashboard" replace />;
     }
     if (requiredRole === 'founder' && !isFounder) {
       return <Navigate to="/dashboard" replace />;
