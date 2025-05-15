@@ -11,12 +11,12 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const { user, signOut } = useAuth();
+  const { profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const handleSignOut = () => {
-    signOut();
+  const handleSignOut = async () => {
+    await signOut();
     navigate('/signin');
   };
 
@@ -93,11 +93,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           {sidebarOpen ? (
             <div className="flex items-center">
               <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white">
-                {user?.name.charAt(0).toUpperCase()}
+                {profile?.name ? profile.name.charAt(0).toUpperCase() : '?'}
               </div>
               <div className="ml-3">
-                <p className="text-sm font-medium text-sidebar-foreground">{user?.name}</p>
-                <p className="text-xs text-sidebar-foreground opacity-70">{user?.role}</p>
+                <p className="text-sm font-medium text-sidebar-foreground">{profile?.name || 'User'}</p>
+                <p className="text-xs text-sidebar-foreground opacity-70">{profile?.role || 'Guest'}</p>
               </div>
               <Button 
                 variant="ghost" 
@@ -111,7 +111,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           ) : (
             <div className="flex flex-col items-center space-y-4">
               <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white">
-                {user?.name.charAt(0).toUpperCase()}
+                {profile?.name ? profile.name.charAt(0).toUpperCase() : '?'}
               </div>
               <Button 
                 variant="ghost" 

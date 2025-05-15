@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
@@ -81,7 +80,7 @@ const questions = [
 ];
 
 const FounderSubmission = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -90,7 +89,7 @@ const FounderSubmission = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       companyName: "",
-      founderName: user?.name || "",
+      founderName: profile?.name || "",
       email: user?.email || "",
       industry: "",
       location: "",
