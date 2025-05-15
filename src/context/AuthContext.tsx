@@ -1,21 +1,24 @@
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export type UserRole = 'investor' | 'founder' | null;
 
-interface User {
+interface UserProfile {
   id: string;
-  email: string;
   name: string;
   role: UserRole;
 }
 
 interface AuthContextType {
   user: User | null;
+  profile: UserProfile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string, role: UserRole) => Promise<void>;
-  signOut: () => void;
+  signOut: () => Promise<void>;
   isAuthenticated: boolean;
   isInvestor: boolean;
   isFounder: boolean;
@@ -23,90 +26,140 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock authentication for demo purposes
-// In a real app, this would connect to your authentication service
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Check for existing user session in localStorage
-    const storedUser = localStorage.getItem('pitchsync_user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Failed to parse stored user:', error);
-        localStorage.removeItem('pitchsync_user');
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, newSession) => {
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+        
+        if (newSession?.user) {
+          await fetchUserProfile(newSession.user.id);
+        } else {
+          setProfile(null);
+        }
       }
-    }
-    setLoading(false);
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(async ({ data: { session: currentSession } }) => {
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+
+      if (currentSession?.user) {
+        await fetchUserProfile(currentSession.user.id);
+      }
+      
+      setLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const signIn = async (email: string, password: string): Promise<void> => {
-    // In a real app, this would call your authentication API
-    setLoading(true);
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, role')
+        .eq('id', userId)
+        .maybeSingle();
 
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        return;
+      }
 
-    // Mock user based on email for demo purposes
-    let mockUser: User;
-    
-    if (email.includes('investor')) {
-      mockUser = {
-        id: '1',
-        email,
-        name: 'Demo Investor',
-        role: 'investor',
-      };
-    } else {
-      mockUser = {
-        id: '2',
-        email,
-        name: 'Demo Founder',
-        role: 'founder',
-      };
+      if (data) {
+        setProfile(data as UserProfile);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
     }
-    
-    setUser(mockUser);
-    localStorage.setItem('pitchsync_user', JSON.stringify(mockUser));
-    setLoading(false);
+  };
+
+  const signIn = async (email: string, password: string): Promise<void> => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw error;
+      }
+      
+      // User profile is fetched by the onAuthStateChange listener
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Sign in failed",
+        description: error.message || "Please check your credentials and try again.",
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const signUp = async (email: string, password: string, name: string, role: UserRole): Promise<void> => {
-    // In a real app, this would call your registration API
     setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            role,
+          },
+        },
+      });
 
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+      if (error) {
+        throw error;
+      }
 
-    const mockUser: User = {
-      id: Math.random().toString(36).substr(2, 9),
-      email,
-      name,
-      role,
-    };
-    
-    setUser(mockUser);
-    localStorage.setItem('pitchsync_user', JSON.stringify(mockUser));
-    setLoading(false);
+      // User profile is created by the database trigger we set up
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Sign up failed",
+        description: error.message || "There was a problem creating your account.",
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const signOut = () => {
-    setUser(null);
-    localStorage.removeItem('pitchsync_user');
+  const signOut = async (): Promise<void> => {
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   const value = {
     user,
+    profile,
     loading,
     signIn,
     signUp,
     signOut,
     isAuthenticated: !!user,
-    isInvestor: user?.role === 'investor',
-    isFounder: user?.role === 'founder',
+    isInvestor: profile?.role === 'investor',
+    isFounder: profile?.role === 'founder',
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

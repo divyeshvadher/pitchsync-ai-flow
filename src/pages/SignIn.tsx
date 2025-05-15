@@ -24,7 +24,7 @@ const formSchema = z.object({
 });
 
 const SignIn = () => {
-  const { signIn } = useAuth();
+  const { signIn, isInvestor } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -46,18 +46,11 @@ const SignIn = () => {
         description: "Welcome back to PitchSync!",
       });
       
-      if (values.email.includes('investor')) {
-        navigate('/dashboard');
-      } else {
-        navigate('/submit');
-      }
+      // Navigation based on user role is now handled by the ProtectedRoute component
+      // and determined from the profile data
+      navigate('/dashboard');
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Sign in failed",
-        description: "Please check your credentials and try again.",
-      });
-    } finally {
+      // Error is handled in the auth context
       setIsLoading(false);
     }
   };
@@ -135,12 +128,6 @@ const SignIn = () => {
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Signing in..." : "Sign in"}
               </Button>
-
-              <div className="mt-4 text-center text-sm">
-                <p className="text-gray-500">
-                  Hint: Use an email containing "investor" (e.g., investor@example.com) to sign in as an investor.
-                </p>
-              </div>
             </form>
           </Form>
         </div>

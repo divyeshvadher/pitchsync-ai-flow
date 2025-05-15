@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
 import InvestorDashboard from "./pages/InvestorDashboard";
 import FounderSubmission from "./pages/FounderSubmission";
@@ -27,11 +27,18 @@ const App = () => (
             <Route path="/" element={<LandingPage />} />
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
-            <Route path="/submit" element={<FounderSubmission />} />
+            <Route 
+              path="/submit" 
+              element={
+                <ProtectedRoute requiredRole="founder">
+                  <FounderSubmission />
+                </ProtectedRoute>
+              } 
+            />
             <Route 
               path="/dashboard" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="investor">
                   <InvestorDashboard />
                 </ProtectedRoute>
               } 
@@ -39,7 +46,7 @@ const App = () => (
             <Route 
               path="/pitch/:id" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="investor">
                   <PitchDetails />
                 </ProtectedRoute>
               } 

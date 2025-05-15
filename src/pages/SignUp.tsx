@@ -65,18 +65,16 @@ const SignUp = () => {
         description: "Welcome to PitchSync!",
       });
       
-      if (values.role === "investor") {
-        navigate('/dashboard');
-      } else {
-        navigate('/submit');
-      }
-    } catch (error) {
+      // The navigation based on the role is now handled by the ProtectedRoute
+      // Since we're using Supabase auth with email confirmation, we'll show a confirmation message
       toast({
-        variant: "destructive",
-        title: "Sign up failed",
-        description: "There was a problem creating your account.",
+        title: "Verification required",
+        description: "Please check your email to verify your account before signing in.",
       });
-    } finally {
+      
+      navigate('/signin');
+    } catch (error) {
+      // Error is handled in the auth context
       setIsLoading(false);
     }
   };
