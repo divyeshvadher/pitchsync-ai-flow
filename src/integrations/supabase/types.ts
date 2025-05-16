@@ -11,64 +11,61 @@ export type Database = {
     Tables: {
       pitches: {
         Row: {
-          ai_score: number | null
-          company_description: string | null
-          company_name: string
-          created_at: string | null
-          funding_amount: number | null
-          funding_stage: string | null
-          growth_projections: string | null
           id: string
-          industry: string | null
-          intro_video_url: string | null
-          location: string | null
-          pitch_deck_url: string | null
-          problem_statement: string | null
-          solution_description: string | null
-          status: string | null
-          team_description: string | null
-          traction: string | null
-          user_id: string | null
+          companyName: string
+          founderName: string
+          email: string
+          industry: string
+          location: string
+          description: string
+          fundingStage: string
+          fundingAmount: string
+          pitchDeckUrl: string
+          videoUrl: string | null
+          answer1: string
+          answer2: string
+          answer3: string
+          answer4: string
+          answer5: string
+          createdAt: string | null
         }
         Insert: {
-          ai_score?: number | null
-          company_description?: string | null
-          company_name: string
-          created_at?: string | null
-          funding_amount?: number | null
-          funding_stage?: string | null
-          growth_projections?: string | null
           id?: string
-          industry?: string | null
-          intro_video_url?: string | null
-          location?: string | null
-          pitch_deck_url?: string | null
-          problem_statement?: string | null
-          solution_description?: string | null
-          status?: string | null
-          team_description?: string | null
-          traction?: string | null
-          user_id?: string | null
+          companyName: string
+          founderName: string
+          email: string
+          industry: string
+          location: string
+          description: string
+          fundingStage: string
+          fundingAmount: string
+          pitchDeckUrl: string
+          videoUrl?: string | null
+          answer1: string
+          answer2: string
+          answer3: string
+          answer4: string
+          answer5: string
+          createdAt?: string | null
         }
         Update: {
-          ai_score?: number | null
-          company_description?: string | null
-          company_name?: string
-          created_at?: string | null
-          funding_amount?: number | null
-          funding_stage?: string | null
-          growth_projections?: string | null
           id?: string
-          industry?: string | null
-          intro_video_url?: string | null
-          location?: string | null
-          pitch_deck_url?: string | null
-          problem_statement?: string | null
-          solution_description?: string | null
-          status?: string | null
-          team_description?: string | null
-          traction?: string | null
-          user_id?: string | null
+          companyName?: string
+          founderName?: string
+          email?: string
+          industry?: string
+          location?: string
+          description?: string
+          fundingStage?: string
+          fundingAmount?: string
+          pitchDeckUrl?: string
+          videoUrl?: string | null
+          answer1?: string
+          answer2?: string
+          answer3?: string
+          answer4?: string
+          answer5?: string
+          createdAt?: string | null
         }
         Relationships: []
       }
@@ -111,6 +108,7 @@ export type Database = {
     }
   }
 }
+
 
 type DefaultSchema = Database[Extract<keyof Database, "public">]
 

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
@@ -112,8 +111,8 @@ const FounderSubmission = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsSubmitting(true);
-      
-      // Format answers into the expected structure
+
+      // Format answers into the expected structure for pitchService
       const answers = [
         { question: questions[0], answer: values.answer1 },
         { question: questions[1], answer: values.answer2 },
@@ -121,9 +120,9 @@ const FounderSubmission = () => {
         { question: questions[3], answer: values.answer4 },
         { question: questions[4], answer: values.answer5 },
       ];
-      
-      // Create pitch submission
-      await createPitch({
+
+      // Create the pitch object in the format expected by the pitchService
+      const pitchData = {
         companyName: values.companyName,
         founderName: values.founderName,
         email: values.email,
@@ -134,27 +133,30 @@ const FounderSubmission = () => {
         fundingAmount: values.fundingAmount,
         pitchDeckUrl: values.pitchDeckUrl,
         videoUrl: values.videoUrl || undefined,
-        answers,
-      });
-      
+        answers: answers,
+      };
+
+      // Submit pitch using the service
+      await createPitch(pitchData);
+
       toast({
         title: "Submission successful",
         description: "Your pitch has been submitted to investors.",
       });
-      
+
       // Reset form
       form.reset();
-      
+
       // Show success message and redirect to confirmation screen
       setTimeout(() => {
         navigate('/dashboard');
       }, 1500);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Submission error:', error);
       toast({
         variant: "destructive",
         title: "Submission failed",
-        description: "There was an error submitting your pitch. Please try again.",
+        description: error.message || "There was an error submitting your pitch. Please try again.",
       });
     } finally {
       setIsSubmitting(false);
@@ -173,7 +175,7 @@ const FounderSubmission = () => {
           </div>
         </div>
       </header>
-      
+
       <div className="container mx-auto px-4 py-6 md:py-8">
         <div className="max-w-4xl mx-auto">
           <div className="mb-6 md:mb-8 text-center">
@@ -182,7 +184,7 @@ const FounderSubmission = () => {
               Complete the form below to submit your startup pitch to potential investors.
             </p>
           </div>
-          
+
           <Card>
             <CardContent className="pt-6">
               <Form {...form}>
@@ -204,14 +206,14 @@ const FounderSubmission = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="industry"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Industry</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger>
                                   <SelectValue placeholder="Select industry" />
@@ -229,7 +231,7 @@ const FounderSubmission = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="location"
@@ -243,7 +245,7 @@ const FounderSubmission = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="description"
@@ -251,9 +253,9 @@ const FounderSubmission = () => {
                           <FormItem className="md:col-span-2">
                             <FormLabel>Company Description</FormLabel>
                             <FormControl>
-                              <Textarea 
-                                placeholder="Brief description of your company and what you do" 
-                                {...field} 
+                              <Textarea
+                                placeholder="Brief description of your company and what you do"
+                                {...field}
                                 rows={3}
                               />
                             </FormControl>
@@ -263,9 +265,9 @@ const FounderSubmission = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <Separator />
-                  
+
                   {/* Funding Information */}
                   <div>
                     <h2 className="text-xl font-semibold mb-4">Funding Information</h2>
@@ -294,7 +296,7 @@ const FounderSubmission = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="fundingAmount"
@@ -310,9 +312,9 @@ const FounderSubmission = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <Separator />
-                  
+
                   {/* Founder Information */}
                   <div>
                     <h2 className="text-xl font-semibold mb-4">Founder Information</h2>
@@ -330,7 +332,7 @@ const FounderSubmission = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="email"
@@ -346,9 +348,9 @@ const FounderSubmission = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <Separator />
-                  
+
                   {/* Pitch Materials */}
                   <div>
                     <h2 className="text-xl font-semibold mb-4">Pitch Materials</h2>
@@ -361,9 +363,9 @@ const FounderSubmission = () => {
                             <FormLabel>Pitch Deck</FormLabel>
                             <FormControl>
                               <div className="flex flex-col md:flex-row md:items-center">
-                                <Input 
-                                  type="file" 
-                                  className="hidden" 
+                                <Input
+                                  type="file"
+                                  className="hidden"
                                   id="pitchDeckInput"
                                   onChange={(e) => {
                                     // In a real app, this would upload the file to storage
@@ -391,7 +393,7 @@ const FounderSubmission = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="videoUrl"
@@ -400,9 +402,9 @@ const FounderSubmission = () => {
                             <FormLabel>Video Introduction (Optional)</FormLabel>
                             <FormControl>
                               <div className="flex flex-col md:flex-row md:items-center">
-                                <Input 
-                                  type="file" 
-                                  className="hidden" 
+                                <Input
+                                  type="file"
+                                  className="hidden"
                                   id="videoInput"
                                   onChange={(e) => {
                                     // In a real app, this would upload the video to storage
@@ -432,9 +434,9 @@ const FounderSubmission = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <Separator />
-                  
+
                   {/* Founder Q&A */}
                   <div>
                     <h2 className="text-xl font-semibold mb-4">Founder Q&A</h2>
@@ -448,9 +450,9 @@ const FounderSubmission = () => {
                             <FormItem>
                               <FormLabel>{question}</FormLabel>
                               <FormControl>
-                                <Textarea 
-                                  placeholder="Your answer" 
-                                  {...field} 
+                                <Textarea
+                                  placeholder="Your answer"
+                                  {...field}
                                   rows={3}
                                 />
                               </FormControl>
@@ -461,9 +463,9 @@ const FounderSubmission = () => {
                       ))}
                     </div>
                   </div>
-                  
+
                   <div className="pt-4 flex justify-end">
-                    <Button type="submit" size="lg" disabled={isSubmitting} className="w-full md:w-auto">
+                    <Button type="submit" disabled={isSubmitting}>
                       {isSubmitting ? "Submitting..." : "Submit Pitch"}
                     </Button>
                   </div>
