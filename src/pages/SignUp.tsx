@@ -64,14 +64,14 @@ const SignUp = () => {
         title: "Account created successfully",
         description: "Welcome to PitchSync!",
       });
-      
+
       // The navigation based on the role is now handled by the ProtectedRoute
       // Since we're using Supabase auth with email confirmation, we'll show a confirmation message
       toast({
         title: "Verification required",
         description: "Please check your email to verify your account before signing in.",
       });
-      
+
       navigate('/signin');
     } catch (error) {
       // Error is handled in the auth context
@@ -81,18 +81,22 @@ const SignUp = () => {
 
   return (
     <div className="min-h-screen flex">
-      <div className="flex-1 hidden lg:block bg-pitchsync-800">
-        <div className="h-full flex items-center justify-center px-12">
-          <div className="max-w-xl">
-            <h1 className="text-4xl font-bold text-white mb-6">Join the PitchSync community</h1>
-            <p className="text-xl text-pitchsync-200">
-              {defaultRole === "investor" 
-                ? "Create your investor account to start managing, scoring, and tracking startup pitches." 
-                : "Create your founder account to submit your startup pitch to our network of investors."}
-            </p>
-          </div>
-        </div>
-      </div>
+      <div className="flex-1 hidden lg:flex items-center justify-center bg-pitchsync-800 px-12">
+  <div className="max-w-md text-center text-white">
+    <img
+      src="public\images\undraw_ideation_r1g5.svg"
+      alt="PitchSync illustration"
+      className="w-full h-auto mb-8"
+    />
+    <h1 className="text-2xl font-bold mb-4">Join the PitchSync community</h1>
+    <p className="text-base text-pitchsync-200">
+      {defaultRole === "investor"
+        ? "Create your investor account to manage, score, and track startup pitches."
+        : "Create your founder account to submit your startup pitch to our network of investors."}
+    </p>
+  </div>
+</div>
+
       <div className="flex-1 flex flex-col justify-center px-6 py-12 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <h2 className="text-center text-3xl font-bold text-gray-900">Create your account</h2>
