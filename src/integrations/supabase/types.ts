@@ -9,6 +9,69 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      pitches: {
+        Row: {
+          ai_score: number | null
+          company_description: string | null
+          company_name: string
+          created_at: string | null
+          funding_amount: number | null
+          funding_stage: string | null
+          growth_projections: string | null
+          id: string
+          industry: string | null
+          intro_video_url: string | null
+          location: string | null
+          pitch_deck_url: string | null
+          problem_statement: string | null
+          solution_description: string | null
+          status: string | null
+          team_description: string | null
+          traction: string | null
+          user_id: string | null
+        }
+        Insert: {
+          ai_score?: number | null
+          company_description?: string | null
+          company_name: string
+          created_at?: string | null
+          funding_amount?: number | null
+          funding_stage?: string | null
+          growth_projections?: string | null
+          id?: string
+          industry?: string | null
+          intro_video_url?: string | null
+          location?: string | null
+          pitch_deck_url?: string | null
+          problem_statement?: string | null
+          solution_description?: string | null
+          status?: string | null
+          team_description?: string | null
+          traction?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          ai_score?: number | null
+          company_description?: string | null
+          company_name?: string
+          created_at?: string | null
+          funding_amount?: number | null
+          funding_stage?: string | null
+          growth_projections?: string | null
+          id?: string
+          industry?: string | null
+          intro_video_url?: string | null
+          location?: string | null
+          pitch_deck_url?: string | null
+          problem_statement?: string | null
+          solution_description?: string | null
+          status?: string | null
+          team_description?: string | null
+          traction?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
