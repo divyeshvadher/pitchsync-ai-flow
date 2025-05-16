@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
@@ -28,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const formSchema = z.object({
   companyName: z.string().min(1, "Company name is required"),
@@ -84,6 +86,7 @@ const FounderSubmission = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isMobile = useIsMobile();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -144,9 +147,10 @@ const FounderSubmission = () => {
       
       // Show success message and redirect to confirmation screen
       setTimeout(() => {
-        navigate('/');
+        navigate('/dashboard');
       }, 1500);
     } catch (error) {
+      console.error('Submission error:', error);
       toast({
         variant: "destructive",
         title: "Submission failed",
@@ -162,18 +166,18 @@ const FounderSubmission = () => {
       <header className="bg-white border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center">
-            <h1 className="text-2xl font-bold text-pitchsync-800">PitchSync</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-pitchsync-800">PitchSync</h1>
           </div>
           <div>
-            <Button variant="outline" onClick={() => navigate('/')}>Exit</Button>
+            <Button variant="outline" onClick={() => navigate('/dashboard')}>Exit</Button>
           </div>
         </div>
       </header>
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 md:py-8">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold mb-2">Submit Your Pitch</h1>
+          <div className="mb-6 md:mb-8 text-center">
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">Submit Your Pitch</h1>
             <p className="text-gray-600">
               Complete the form below to submit your startup pitch to potential investors.
             </p>
@@ -182,11 +186,11 @@ const FounderSubmission = () => {
           <Card>
             <CardContent className="pt-6">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 md:space-y-8">
                   {/* Company Information Section */}
                   <div>
                     <h2 className="text-xl font-semibold mb-4">Company Information</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                       <FormField
                         control={form.control}
                         name="companyName"
@@ -213,7 +217,7 @@ const FounderSubmission = () => {
                                   <SelectValue placeholder="Select industry" />
                                 </SelectTrigger>
                               </FormControl>
-                              <SelectContent>
+                              <SelectContent className={isMobile ? "w-[calc(100vw-2rem)]" : ""}>
                                 {industries.map((industry) => (
                                   <SelectItem key={industry} value={industry}>
                                     {industry}
@@ -265,7 +269,7 @@ const FounderSubmission = () => {
                   {/* Funding Information */}
                   <div>
                     <h2 className="text-xl font-semibold mb-4">Funding Information</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                       <FormField
                         control={form.control}
                         name="fundingStage"
@@ -278,7 +282,7 @@ const FounderSubmission = () => {
                                   <SelectValue placeholder="Select funding stage" />
                                 </SelectTrigger>
                               </FormControl>
-                              <SelectContent>
+                              <SelectContent className={isMobile ? "w-[calc(100vw-2rem)]" : ""}>
                                 {fundingStages.map((stage) => (
                                   <SelectItem key={stage} value={stage}>
                                     {stage}
@@ -312,7 +316,7 @@ const FounderSubmission = () => {
                   {/* Founder Information */}
                   <div>
                     <h2 className="text-xl font-semibold mb-4">Founder Information</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                       <FormField
                         control={form.control}
                         name="founderName"
@@ -348,7 +352,7 @@ const FounderSubmission = () => {
                   {/* Pitch Materials */}
                   <div>
                     <h2 className="text-xl font-semibold mb-4">Pitch Materials</h2>
-                    <div className="grid grid-cols-1 gap-6">
+                    <div className="grid grid-cols-1 gap-4 md:gap-6">
                       <FormField
                         control={form.control}
                         name="pitchDeckUrl"
@@ -356,7 +360,7 @@ const FounderSubmission = () => {
                           <FormItem>
                             <FormLabel>Pitch Deck</FormLabel>
                             <FormControl>
-                              <div className="flex items-center">
+                              <div className="flex flex-col md:flex-row md:items-center">
                                 <Input 
                                   type="file" 
                                   className="hidden" 
@@ -371,10 +375,11 @@ const FounderSubmission = () => {
                                   type="button"
                                   variant="outline"
                                   onClick={() => document.getElementById("pitchDeckInput")?.click()}
+                                  className="w-full md:w-auto"
                                 >
                                   Upload Pitch Deck
                                 </Button>
-                                <span className="ml-4 text-sm text-gray-500">
+                                <span className="mt-2 md:mt-0 md:ml-4 text-sm text-gray-500">
                                   {field.value ? "File selected" : "No file selected"}
                                 </span>
                               </div>
@@ -394,7 +399,7 @@ const FounderSubmission = () => {
                           <FormItem>
                             <FormLabel>Video Introduction (Optional)</FormLabel>
                             <FormControl>
-                              <div className="flex items-center">
+                              <div className="flex flex-col md:flex-row md:items-center">
                                 <Input 
                                   type="file" 
                                   className="hidden" 
@@ -409,10 +414,11 @@ const FounderSubmission = () => {
                                   type="button"
                                   variant="outline"
                                   onClick={() => document.getElementById("videoInput")?.click()}
+                                  className="w-full md:w-auto"
                                 >
                                   Upload Video
                                 </Button>
-                                <span className="ml-4 text-sm text-gray-500">
+                                <span className="mt-2 md:mt-0 md:ml-4 text-sm text-gray-500">
                                   {field.value ? "File selected" : "No file selected"}
                                 </span>
                               </div>
@@ -432,7 +438,7 @@ const FounderSubmission = () => {
                   {/* Founder Q&A */}
                   <div>
                     <h2 className="text-xl font-semibold mb-4">Founder Q&A</h2>
-                    <div className="space-y-6">
+                    <div className="space-y-4 md:space-y-6">
                       {questions.map((question, index) => (
                         <FormField
                           key={index}
@@ -457,7 +463,7 @@ const FounderSubmission = () => {
                   </div>
                   
                   <div className="pt-4 flex justify-end">
-                    <Button type="submit" size="lg" disabled={isSubmitting}>
+                    <Button type="submit" size="lg" disabled={isSubmitting} className="w-full md:w-auto">
                       {isSubmitting ? "Submitting..." : "Submit Pitch"}
                     </Button>
                   </div>

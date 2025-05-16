@@ -1,9 +1,10 @@
-// founderDashboard.tsx
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/context/AuthContext';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import MainLayout from '@/components/MainLayout';
 import { Check, X, Clock, BarChart3, PlusCircle } from 'lucide-react';
 import {
@@ -12,23 +13,51 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
-
 import { Button } from "@/components/ui/button";
-import { Pitch } from '@/services/pitchService';
+import { Pitch, getPitches } from '@/services/pitchService';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const FounderDashboard = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const queryClient = useQueryClient();
 
   const { data: pitches, isLoading: isPitchesLoading, error: pitchesError } = useQuery({
     queryKey: ['founderPitches', user?.id],
     queryFn: async () => {
-      const { getPitches } = await import('@/services/pitchService');
       const allPitches = await getPitches();
       return allPitches.filter(pitch => pitch.email === user?.email);
     },
     enabled: !!user?.id,
   });
+
+  // Set up real-time subscription
+  useEffect(() => {
+    if (!user?.id) return;
+
+    // Subscribe to changes on the pitches table
+    const channel = supabase
+      .channel('public:pitches')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'pitches' 
+        }, 
+        () => {
+          // Invalidate and refetch pitches when changes occur
+          queryClient.invalidateQueries({ queryKey: ['founderPitches', user?.id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      // Unsubscribe when component unmounts
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
 
   const getPitchStatusIcon = (status: string) => {
     switch (status) {
@@ -83,13 +112,13 @@ const FounderDashboard = () => {
 
   return (
     <MainLayout>
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
+      <div className="container mx-auto px-4 py-4 md:py-8">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 md:mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Founder Dashboard</h1>
+            <h1 className="text-2xl md:text-3xl font-bold">Founder Dashboard</h1>
             <p className="text-gray-600">Track your pitches and stay updated</p>
           </div>
-          <Button onClick={() => window.location.href = '/submit'}>
+          <Button onClick={() => navigate('/submit')} className="w-full md:w-auto">
             <PlusCircle className="mr-2 h-5 w-5" /> Submit New Pitch
           </Button>
         </div>
@@ -97,51 +126,51 @@ const FounderDashboard = () => {
         {pitches && pitches.length > 0 ? (
           <>
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
               <Card>
-                <CardHeader className="bg-blue-50">
-                  <CardTitle>Total Pitches</CardTitle>
+                <CardHeader className="bg-blue-50 pb-3">
+                  <CardTitle className="text-lg">Total Pitches</CardTitle>
                 </CardHeader>
-                <CardContent className="pt-6">
-                  <p className="text-4xl font-bold">{pitches.length}</p>
+                <CardContent className="pt-4">
+                  <p className="text-3xl md:text-4xl font-bold">{pitches.length}</p>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader className="bg-green-50">
-                  <CardTitle>Shortlisted</CardTitle>
+                <CardHeader className="bg-green-50 pb-3">
+                  <CardTitle className="text-lg">Shortlisted</CardTitle>
                 </CardHeader>
-                <CardContent className="pt-6">
-                  <p className="text-4xl font-bold">{pitches.filter(p => p.status === 'shortlisted').length}</p>
+                <CardContent className="pt-4">
+                  <p className="text-3xl md:text-4xl font-bold">{pitches.filter(p => p.status === 'shortlisted').length}</p>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader className="bg-yellow-50">
-                  <CardTitle>Under Review</CardTitle>
+                <CardHeader className="bg-yellow-50 pb-3">
+                  <CardTitle className="text-lg">Under Review</CardTitle>
                 </CardHeader>
-                <CardContent className="pt-6">
-                  <p className="text-4xl font-bold">{pitches.filter(p => p.status === 'new').length}</p>
+                <CardContent className="pt-4">
+                  <p className="text-3xl md:text-4xl font-bold">{pitches.filter(p => p.status === 'new').length}</p>
                 </CardContent>
               </Card>
             </div>
 
             {/* Recent Activity */}
-            <div className="mb-8">
+            <div className="mb-6 md:mb-8">
               <Card>
-                <CardHeader>
+                <CardHeader className="pb-3">
                   <CardTitle>Recent Activity</CardTitle>
                   <CardDescription>Latest 3 pitches submitted</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {recentPitches.map(pitch => (
-                    <div key={pitch.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between">
+                    <div key={pitch.id} className="border rounded-lg p-3 md:p-4">
+                      <div className="flex flex-col sm:flex-row sm:justify-between gap-2 sm:gap-0">
                         <div>
-                          <h3 className="font-semibold text-lg">{pitch.companyName}</h3>
-                          <p className="text-sm text-gray-500">Submitted on {new Date(pitch.createdAt).toLocaleDateString()}</p>
+                          <h3 className="font-semibold text-base md:text-lg">{pitch.companyName}</h3>
+                          <p className="text-xs md:text-sm text-gray-500">Submitted on {new Date(pitch.createdAt).toLocaleDateString()}</p>
                         </div>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPitchStatusColor(pitch.status)}`}>
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPitchStatusColor(pitch.status)}`}>
                           {getPitchStatusIcon(pitch.status)}
                           <span className="ml-1">{getPitchStatusText(pitch.status)}</span>
                         </span>
@@ -153,44 +182,46 @@ const FounderDashboard = () => {
             </div>
 
             {/* All Pitches Table */}
-            <Card className="mb-8">
-              <CardHeader>
+            <Card className="mb-6 md:mb-8 overflow-hidden">
+              <CardHeader className="pb-3">
                 <CardTitle>Your Pitches</CardTitle>
                 <CardDescription>Overview of all submitted pitches</CardDescription>
               </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Company</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>AI Score</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {pitches.map(pitch => (
-                      <TableRow key={pitch.id}>
-                        <TableCell>{pitch.companyName}</TableCell>
-                        <TableCell>{new Date(pitch.createdAt).toLocaleDateString()}</TableCell>
-                        <TableCell>
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPitchStatusColor(pitch.status)}`}>
-                            {getPitchStatusIcon(pitch.status)}
-                            <span className="ml-1">{getPitchStatusText(pitch.status)}</span>
-                          </span>
-                        </TableCell>
-                        <TableCell>{pitch.aiScore || 'N/A'}</TableCell>
-                        <TableCell>
-                          <Button variant="outline" size="sm" onClick={() => window.location.href = `/pitch/${pitch.id}`}>
-                            View
-                          </Button>
-                        </TableCell>
+              <div className="overflow-x-auto">
+                <CardContent className={isMobile ? "px-2" : ""}>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[30%] md:w-auto">Company</TableHead>
+                        <TableHead className="hidden md:table-cell">Date</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="hidden md:table-cell">AI Score</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
+                    </TableHeader>
+                    <TableBody>
+                      {pitches.map(pitch => (
+                        <TableRow key={pitch.id}>
+                          <TableCell className="font-medium">{pitch.companyName}</TableCell>
+                          <TableCell className="hidden md:table-cell">{new Date(pitch.createdAt).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPitchStatusColor(pitch.status)}`}>
+                              {getPitchStatusIcon(pitch.status)}
+                              <span className="ml-1">{getPitchStatusText(pitch.status)}</span>
+                            </span>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">{pitch.aiScore || 'N/A'}</TableCell>
+                          <TableCell>
+                            <Button variant="outline" size="sm" onClick={() => navigate(`/pitch/${pitch.id}`)}>
+                              View
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </div>
             </Card>
 
             {/* Investor Feedback */}
@@ -216,11 +247,11 @@ const FounderDashboard = () => {
             )}
           </>
         ) : (
-          <div className="text-center py-20">
+          <div className="text-center py-16 md:py-20">
             <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-            <h2 className="text-2xl font-semibold mb-2">No pitches submitted yet</h2>
+            <h2 className="text-xl md:text-2xl font-semibold mb-2">No pitches submitted yet</h2>
             <p className="text-gray-600 mb-6">Start by submitting your first pitch to get feedback.</p>
-            <Button onClick={() => window.location.href = '/submit'}>
+            <Button onClick={() => navigate('/submit')}>
               <PlusCircle className="mr-2 h-5 w-5" /> Submit a Pitch
             </Button>
           </div>

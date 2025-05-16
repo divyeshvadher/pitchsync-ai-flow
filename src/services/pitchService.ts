@@ -1,4 +1,7 @@
 
+import { supabase } from '@/integrations/supabase/client';
+import { v4 as uuidv4 } from 'uuid';
+
 export interface Pitch {
   id: string;
   companyName: string;
@@ -21,7 +24,7 @@ export interface Pitch {
   aiScore?: number;
 }
 
-// Mock data for the demo
+// Mock data is kept for testing and development purposes
 const mockPitches: Pitch[] = [
   {
     id: '1',
@@ -119,45 +122,226 @@ const mockPitches: Pitch[] = [
   }
 ];
 
-// Simulated delay to mimic API call
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
+// Database operations
 export const getPitches = async (): Promise<Pitch[]> => {
-  await delay(800);
-  return [...mockPitches];
+  try {
+    const { data, error } = await supabase
+      .from('pitches')
+      .select('*');
+
+    if (error) {
+      console.error('Error fetching pitches:', error);
+      // Fallback to mock data in case of error
+      return [...mockPitches];
+    }
+
+    if (!data || data.length === 0) {
+      return [...mockPitches];
+    }
+
+    // Transform database records to Pitch interface
+    return data.map(pitch => {
+      const problemStatement = pitch.problem_statement || '';
+      const solution = pitch.solution_description || '';
+      const traction = pitch.traction || '';
+      const team = pitch.team_description || '';
+      const growth = pitch.growth_projections || '';
+      
+      // Construct answers from the database fields
+      const answers = [
+        { question: 'What problem are you solving?', answer: problemStatement },
+        { question: 'What is your unique solution?', answer: solution },
+        { question: 'What traction do you have?', answer: traction },
+        { question: 'Tell us about your team.', answer: team },
+        { question: 'What are your growth projections?', answer: growth }
+      ];
+
+      return {
+        id: pitch.id,
+        companyName: pitch.company_name,
+        founderName: pitch.user_id, // In a real app, we'd join with profiles to get name
+        email: '', // Would need to be fetched separately from auth or profiles
+        industry: pitch.industry || '',
+        location: pitch.location || '',
+        description: pitch.company_description || '',
+        fundingStage: pitch.funding_stage || '',
+        fundingAmount: String(pitch.funding_amount || '0'),
+        pitchDeckUrl: pitch.pitch_deck_url || '/placeholder.svg',
+        videoUrl: pitch.intro_video_url,
+        status: pitch.status as Pitch['status'] || 'new',
+        createdAt: pitch.created_at || new Date().toISOString(),
+        answers,
+        aiSummary: `${pitch.company_name} is developing ${pitch.company_description} The founder is seeking ${pitch.funding_amount} at ${pitch.funding_stage} stage.`,
+        aiScore: pitch.ai_score || Math.floor(Math.random() * 30) + 65,
+      };
+    });
+  } catch (error) {
+    console.error('Error in getPitches:', error);
+    return [...mockPitches];
+  }
 };
 
 export const getPitchById = async (id: string): Promise<Pitch | undefined> => {
-  await delay(500);
-  return mockPitches.find(pitch => pitch.id === id);
+  try {
+    const { data, error } = await supabase
+      .from('pitches')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error('Error fetching pitch by ID:', error);
+      // Fallback to mock data in case of error
+      return mockPitches.find(pitch => pitch.id === id);
+    }
+
+    if (!data) {
+      return mockPitches.find(pitch => pitch.id === id);
+    }
+
+    // Transform database record to Pitch interface
+    const pitch = data;
+    const problemStatement = pitch.problem_statement || '';
+    const solution = pitch.solution_description || '';
+    const traction = pitch.traction || '';
+    const team = pitch.team_description || '';
+    const growth = pitch.growth_projections || '';
+    
+    // Construct answers from the database fields
+    const answers = [
+      { question: 'What problem are you solving?', answer: problemStatement },
+      { question: 'What is your unique solution?', answer: solution },
+      { question: 'What traction do you have?', answer: traction },
+      { question: 'Tell us about your team.', answer: team },
+      { question: 'What are your growth projections?', answer: growth }
+    ];
+
+    return {
+      id: pitch.id,
+      companyName: pitch.company_name,
+      founderName: pitch.user_id, // Would need to fetch from profiles
+      email: '', // Would need to fetch from auth or profiles
+      industry: pitch.industry || '',
+      location: pitch.location || '',
+      description: pitch.company_description || '',
+      fundingStage: pitch.funding_stage || '',
+      fundingAmount: String(pitch.funding_amount || '0'),
+      pitchDeckUrl: pitch.pitch_deck_url || '/placeholder.svg',
+      videoUrl: pitch.intro_video_url,
+      status: pitch.status as Pitch['status'] || 'new',
+      createdAt: pitch.created_at || new Date().toISOString(),
+      answers,
+      aiSummary: `${pitch.company_name} is developing ${pitch.company_description} The founder is seeking ${pitch.funding_amount} at ${pitch.funding_stage} stage.`,
+      aiScore: pitch.ai_score || Math.floor(Math.random() * 30) + 65,
+    };
+  } catch (error) {
+    console.error('Error in getPitchById:', error);
+    return mockPitches.find(pitch => pitch.id === id);
+  }
 };
 
 export const createPitch = async (pitch: Omit<Pitch, 'id' | 'status' | 'createdAt' | 'aiSummary' | 'aiScore'>): Promise<Pitch> => {
-  await delay(1000);
-  
-  // Generate AI summary and score (in a real app, this would be done by an AI service)
-  const aiSummary = `${pitch.companyName} is developing ${pitch.description} The founder is seeking ${pitch.fundingAmount} at ${pitch.fundingStage} stage.`;
-  const aiScore = Math.floor(Math.random() * 30) + 65; // Random score between 65-95
-  
-  const newPitch: Pitch = {
-    id: Math.random().toString(36).substr(2, 9),
-    status: 'new',
-    createdAt: new Date().toISOString(),
-    aiSummary,
-    aiScore,
-    ...pitch
-  };
-  
-  return newPitch;
+  try {
+    // Generate AI summary and score (in a real app, this would be done by an AI service)
+    const aiSummary = `${pitch.companyName} is developing ${pitch.description} The founder is seeking ${pitch.fundingAmount} at ${pitch.fundingStage} stage.`;
+    const aiScore = Math.floor(Math.random() * 30) + 65; // Random score between 65-95
+    
+    // Extract answers for database fields
+    const problemStatement = pitch.answers.find(a => a.question.includes('problem'))?.answer || '';
+    const solution = pitch.answers.find(a => a.question.includes('unique solution'))?.answer || '';
+    const traction = pitch.answers.find(a => a.question.includes('traction'))?.answer || '';
+    const team = pitch.answers.find(a => a.question.includes('team'))?.answer || '';
+    const growth = pitch.answers.find(a => a.question.includes('growth'))?.answer || '';
+
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      throw new Error("User not authenticated");
+    }
+
+    // Prepare data for Supabase
+    const pitchData = {
+      id: uuidv4(),
+      company_name: pitch.companyName,
+      company_description: pitch.description,
+      industry: pitch.industry,
+      location: pitch.location,
+      funding_stage: pitch.fundingStage,
+      funding_amount: parseFloat(pitch.fundingAmount.replace(/[^0-9.-]+/g, "") || "0"),
+      pitch_deck_url: pitch.pitchDeckUrl,
+      intro_video_url: pitch.videoUrl,
+      problem_statement: problemStatement,
+      solution_description: solution,
+      traction: traction,
+      team_description: team,
+      growth_projections: growth,
+      user_id: user.id,
+      status: 'new',
+      ai_score: aiScore
+    };
+
+    // Insert into Supabase
+    const { data, error } = await supabase
+      .from('pitches')
+      .insert([pitchData])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating pitch in Supabase:', error);
+      throw error;
+    }
+
+    // Return the created pitch in the format expected by the frontend
+    return {
+      id: data.id,
+      companyName: data.company_name,
+      founderName: pitch.founderName,
+      email: pitch.email,
+      industry: data.industry || '',
+      location: data.location || '',
+      description: data.company_description || '',
+      fundingStage: data.funding_stage || '',
+      fundingAmount: String(data.funding_amount || '0'),
+      pitchDeckUrl: data.pitch_deck_url || '/placeholder.svg',
+      videoUrl: data.intro_video_url,
+      status: data.status as Pitch['status'] || 'new',
+      createdAt: data.created_at || new Date().toISOString(),
+      answers: pitch.answers,
+      aiSummary,
+      aiScore,
+    };
+  } catch (error) {
+    console.error('Error in createPitch:', error);
+    throw error;
+  }
 };
 
 export const updatePitchStatus = async (id: string, status: Pitch['status']): Promise<Pitch> => {
-  await delay(500);
-  const pitch = mockPitches.find(p => p.id === id);
-  if (!pitch) {
-    throw new Error(`Pitch with id ${id} not found`);
+  try {
+    // Update status in Supabase
+    const { data, error } = await supabase
+      .from('pitches')
+      .update({ status })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating pitch status in Supabase:', error);
+      throw error;
+    }
+
+    // Get the full pitch details after status update
+    const updatedPitch = await getPitchById(id);
+    if (!updatedPitch) {
+      throw new Error(`Pitch with id ${id} not found after status update`);
+    }
+
+    return updatedPitch;
+  } catch (error) {
+    console.error('Error in updatePitchStatus:', error);
+    throw error;
   }
-  
-  const updatedPitch = { ...pitch, status };
-  return updatedPitch;
 };
