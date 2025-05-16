@@ -10,7 +10,9 @@ import FounderDashboard from "./pages/FounderDashboard";
 import FounderSubmission from "./pages/FounderSubmission";
 import PitchDetails from "./pages/PitchDetails";
 import SignIn from "./pages/SignIn";
-import SignUp from "./pages/SignUp";
+import SignUpFounder from "./pages/SignUpFounder";
+import SignUpInvestor from "./pages/SignUpInvestor";
+import SignUpRedirect from "./pages/SignUpRedirect";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -27,7 +29,9 @@ const App = () => (
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/signin" element={<SignIn />} />
-            <Route path="/signup" element={<SignUp />} />
+            <Route path="/signup" element={<SignUpRedirect />} />
+            <Route path="/signup/founder" element={<SignUpFounder />} />
+            <Route path="/signup/investor" element={<SignUpInvestor />} />
             <Route 
               path="/submit" 
               element={

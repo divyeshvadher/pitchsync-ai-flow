@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight, Award, Briefcase, CheckCircle } from "lucide-react";
@@ -15,8 +14,11 @@ const LandingPage = () => {
           </div>
           <div className="flex items-center space-x-4">
             <Link to="/signin" className="text-sm font-medium hover:text-primary transition-colors">Sign In</Link>
-            <Link to="/signup">
-              <Button>Get Started</Button>
+            <Link
+              to="/signup/founder"
+              className="text-primary hover:text-primary/80"
+            >
+              Sign up
             </Link>
           </div>
         </div>
@@ -34,18 +36,12 @@ const LandingPage = () => {
                 PitchSync helps founders showcase their vision and enables investors to discover 
                 promising opportunities with AI-powered insights and streamlined workflows.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <Button size="lg" className="gap-2 group" asChild>
-                  <Link to="/signup?role=founder">
-                    For Founders
-                    <ArrowRight className="group-hover:translate-x-1 transition-transform" />
-                  </Link>
+              <div className="flex flex-col sm:flex-row gap-4 mt-8">
+                <Button asChild size="lg" className="px-8">
+                  <Link to="/signup/founder">Sign up as a Founder</Link>
                 </Button>
-                <Button size="lg" variant="outline" className="gap-2 group" asChild>
-                  <Link to="/signup?role=investor">
-                    For Investors
-                    <ArrowRight className="group-hover:translate-x-1 transition-transform" />
-                  </Link>
+                <Button asChild variant="outline" size="lg" className="px-8">
+                  <Link to="/signup/investor">Sign up as an Investor</Link>
                 </Button>
               </div>
             </div>

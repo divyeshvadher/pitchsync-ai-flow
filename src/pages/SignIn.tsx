@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { z } from "zod";
@@ -15,6 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthContext";
+import AnimatedBackground from "@/components/AnimatedBackground";
 
 // Schema
 const formSchema = z.object({
@@ -53,7 +55,7 @@ const SignIn = () => {
       <div className="hidden lg:flex w-1/2 bg-pitchsync-800 items-center justify-center p-12">
         <div className="max-w-md text-white text-center">
           <img
-            src="public\images\undraw_metrics_5v8d.svg" // ✅ Online image URL
+            src="/images/undraw_metrics_5v8d.svg"
             alt="Investment illustration"
             className="w-full mb-8"
           />
@@ -64,9 +66,11 @@ const SignIn = () => {
         </div>
       </div>
 
-      {/* Right side form section */}
-      <div className="flex w-full lg:w-1/2 flex-col justify-center px-6 py-12">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+      {/* Right side form section - now with animated background */}
+      <div className="flex w-full lg:w-1/2 flex-col justify-center px-6 py-12 relative overflow-hidden">
+        <AnimatedBackground />
+
+        <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
           <h2 className="text-center text-3xl font-bold text-gray-900">Welcome back</h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Don't have an account?{" "}
@@ -76,9 +80,9 @@ const SignIn = () => {
           </p>
         </div>
 
-        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 bg-white/80 backdrop-blur-sm p-8 rounded-lg shadow">
               <FormField
                 control={form.control}
                 name="email"
