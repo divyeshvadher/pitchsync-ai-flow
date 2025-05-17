@@ -13,7 +13,7 @@ const LandingPage = () => {
             <h1 className="text-2xl font-bold text-pitchsync-800">PitchSync</h1>
           </div>
           <div className="flex items-center space-x-4">
-            <Link to="/signin" className="text-sm font-medium hover:text-primary transition-colors">Sign In</Link>
+            <Link to="/signin" className="text-primary hover:text-primary/80">Sign In</Link>
             <Link
               to="/signup/founder"
               className="text-primary hover:text-primary/80"
