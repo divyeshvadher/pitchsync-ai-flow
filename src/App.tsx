@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,6 +15,7 @@ import SignUpRedirect from "./pages/SignUpRedirect";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import Web3InvestorDashboard from "./pages/Web3InvestorDashboard";
 
 const queryClient = new QueryClient();
 
@@ -73,8 +73,8 @@ function DashboardRouter() {
     return <FounderDashboard />;
   }
   
-  // Otherwise show investor dashboard
-  return <InvestorDashboard />;
+  // Otherwise show investor dashboard with Web3 theme
+  return <Web3InvestorDashboard />;
 }
 
 export default App;

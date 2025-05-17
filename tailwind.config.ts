@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -20,8 +21,10 @@ export default {
 		extend: {
 			fontFamily: {
 				sans: ['Inter', 'sans-serif'],
+				mono: ['JetBrains Mono', 'monospace'],
 			},
 			colors: {
+				// Original colors
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
@@ -88,6 +91,21 @@ export default {
 					800: '#285E61',
 					900: '#234E52',
 				},
+				// Web3 Futuristic theme colors
+				neon: {
+					purple: '#9b87f5',
+					blue: '#33c3f0',
+					pink: '#d946ef',
+					green: '#4ade80',
+					cyan: '#22d3ee',
+					yellow: '#facc15',
+				},
+				cyber: {
+					dark: '#1a1f2c',
+					darker: '#0f1015',
+					light: '#8e9196',
+					accent: '#7e69ab',
+				},
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -115,6 +133,20 @@ export default {
 					'0%': { opacity: '0' },
 					'100%': { opacity: '1' }
 				},
+				'pulse-glow': {
+					'0%, 100%': { 
+						opacity: '1',
+						boxShadow: '0 0 5px 2px var(--glow-color, rgba(155, 135, 245, 0.4))'
+					},
+					'50%': { 
+						opacity: '0.6',
+						boxShadow: '0 0 15px 5px var(--glow-color, rgba(155, 135, 245, 0.7))'
+					}
+				},
+				'floating': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-5px)' }
+				},
 				'blob': {
 					'0%': { transform: 'translate(0px, 0px) scale(1)' },
 					'33%': { transform: 'translate(30px, -50px) scale(1.1)' },
@@ -126,16 +158,18 @@ export default {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.3s ease-out',
+				'pulse-glow': 'pulse-glow 3s infinite',
+				'floating': 'floating 3s ease-in-out infinite',
 				'blob': 'blob 7s infinite'
 			},
-			utilities: {
-				'.animation-delay-2000': {
-					'animation-delay': '2s',
-				},
-				'.animation-delay-4000': {
-					'animation-delay': '4s',
-				},
-			}
+			boxShadow: {
+				'neon': '0 0 5px 2px var(--glow-color, rgba(155, 135, 245, 0.6))',
+				'neon-hover': '0 0 15px 5px var(--glow-color, rgba(155, 135, 245, 0.9))',
+				'glass': '0 4px 24px -2px rgba(0, 0, 0, 0.2)',
+			},
+			backdropBlur: {
+				'xs': '2px',
+			},
 		}
 	},
 	plugins: [
@@ -148,6 +182,26 @@ export default {
 				'.animation-delay-4000': {
 					'animation-delay': '4s',
 				},
+				'.glass-effect': {
+					'background': 'rgba(17, 18, 23, 0.7)',
+					'backdrop-filter': 'blur(10px)',
+					'border': '1px solid rgba(255, 255, 255, 0.1)',
+				},
+				'.text-glow': {
+					'text-shadow': '0 0 10px var(--glow-color, rgba(155, 135, 245, 0.7))',
+				},
+				'.text-glow-sm': {
+					'text-shadow': '0 0 5px var(--glow-color, rgba(155, 135, 245, 0.5))',
+				},
+				'.border-glow': {
+					'box-shadow': '0 0 5px var(--glow-color, rgba(155, 135, 245, 0.3))',
+					'border': '1px solid var(--border-color, rgba(155, 135, 245, 0.3))',
+				},
+				'.gradient-text': {
+					'background-clip': 'text',
+					'-webkit-background-clip': 'text',
+					'color': 'transparent',
+				}
 			};
 			addUtilities(newUtilities);
 		}

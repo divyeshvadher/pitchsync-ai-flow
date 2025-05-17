@@ -1,5 +1,6 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,7 +8,48 @@
 
 @layer base {
   :root {
-    --background: 210 50% 98%;
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 13%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 260 67% 75%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 217 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 180 66% 49%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 32.6% 17.5%;
+    --input: 217 32.6% 17.5%;
+    --ring: 260 67% 75%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 222 47% 8%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 260 67% 75%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 32.6% 17.5%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 222 47% 15%;
+    --sidebar-ring: 260 67% 75%;
+  }
+
+  .light {
+    --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
@@ -35,8 +77,6 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221 83% 53%;
 
-    --radius: 0.5rem;
-
     --sidebar-background: 221 47% 20%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 221 83% 53%;
@@ -46,50 +86,11 @@
     --sidebar-border: 221 47% 25%;
     --sidebar-ring: 221 83% 53%;
   }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 180 66% 49%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
-
-    --sidebar-background: 222.2 84% 4.9%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 221 83% 53%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217.2 32.6% 17.5%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217.2 32.6% 17.5%;
-    --sidebar-ring: 221 83% 53%;
-  }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border selection:bg-neon-purple/20 selection:text-white;
   }
   body {
     @apply bg-background text-foreground;
@@ -99,6 +100,114 @@
 
 @layer components {
   .pitch-card {
-    @apply border border-border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200;
+    @apply relative border border-neon-purple/30 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden bg-card backdrop-blur-sm;
   }
+  
+  .pitch-card::before {
+    content: "";
+    @apply absolute inset-0 rounded-xl border border-neon-purple/30 opacity-0 transition-opacity duration-300;
+    box-shadow: 0 0 15px theme('colors.neon.purple');
+  }
+  
+  .pitch-card:hover::before {
+    @apply opacity-100;
+  }
+  
+  .cyber-button {
+    @apply relative py-2 px-4 font-mono text-sm tracking-wider overflow-hidden transition-all duration-300 
+    bg-cyber-dark border border-neon-purple/40 rounded-md hover:border-neon-purple/80
+    hover:shadow-[0_0_10px_theme('colors.neon.purple')] hover:text-neon-purple;
+  }
+  
+  .cyber-button::before {
+    content: "";
+    @apply absolute inset-0 bg-gradient-to-r from-neon-purple/10 to-neon-blue/10 opacity-0 transition-opacity duration-300;
+  }
+  
+  .cyber-button:hover::before {
+    @apply opacity-100;
+  }
+  
+  .glass-card {
+    @apply bg-cyber-dark/80 backdrop-blur-md border border-white/10 rounded-xl;
+  }
+  
+  .gradient-border {
+    @apply relative rounded-xl p-[1px] overflow-hidden;
+    background: linear-gradient(135deg, theme('colors.neon.purple'), theme('colors.neon.blue'));
+  }
+  
+  .gradient-border > * {
+    @apply rounded-[calc(theme('borderRadius.xl')_-_1px)];
+  }
+  
+  .grid-pattern {
+    background-image: 
+      linear-gradient(rgba(155, 135, 245, 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(155, 135, 245, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  
+  .neo-brutalism {
+    @apply border-2 border-white shadow-[5px_5px_0px_0px_theme('colors.neon.purple')];
+  }
+  
+  .like-button {
+    @apply relative inline-flex items-center justify-center w-10 h-10 rounded-full 
+    border border-neon-pink/30 bg-transparent transition-all duration-300
+    hover:border-neon-pink/80 hover:shadow-[0_0_10px_theme('colors.neon.pink')];
+  }
+  
+  .like-button.active {
+    @apply bg-gradient-to-r from-neon-pink/20 to-neon-purple/20
+    border-neon-pink shadow-[0_0_10px_theme('colors.neon.pink')];
+  }
+  
+  .tag {
+    @apply inline-flex items-center text-xs px-3 py-1 rounded-full
+    border border-neon-purple/40 bg-neon-purple/10
+    hover:border-neon-purple/80 hover:shadow-[0_0_6px_theme('colors.neon.purple')];
+  }
+}
+
+/* Animation for the glowing orbs */
+.orb {
+  @apply absolute rounded-full opacity-40 blur-3xl;
+  animation: orbFloat 20s ease infinite alternate;
+}
+
+@keyframes orbFloat {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-7%, 5%) scale(1.05); }
+  66% { transform: translate(4%, -4%) scale(0.95); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+/* Wave animation for background */
+.wave {
+  animation: wave 8s cubic-bezier(0.36, 0.45, 0.63, 0.53) infinite;
+  transform-origin: center bottom;
+}
+
+@keyframes wave {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5%); }
+}
+
+/* Custom scroll bar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-cyber-darker;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-cyber-accent rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-neon-purple;
 }
