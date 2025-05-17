@@ -134,7 +134,7 @@ const FounderDashboard = () => {
                   <div className="bg-blue-100 p-2 rounded-full">
                     <BarChart3 className="text-blue-600 w-5 h-5" />
                   </div>
-                  <CardTitle className="text-md">Total Pitches</CardTitle>
+                  <CardTitle className="text-md text-blue-800">Total Pitches</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4">
                   <p className="text-4xl font-bold text-blue-800">{pitches.length}</p>
@@ -146,7 +146,7 @@ const FounderDashboard = () => {
                   <div className="bg-green-100 p-2 rounded-full">
                     <Check className="text-green-600 w-5 h-5" />
                   </div>
-                  <CardTitle className="text-md">Shortlisted</CardTitle>
+                  <CardTitle className="text-md text-green-800">Shortlisted</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4">
                   <p className="text-3xl md:text-4xl font-bold text-green-800">{pitches.filter(p => p.status === 'shortlisted').length}</p>
@@ -158,7 +158,7 @@ const FounderDashboard = () => {
                   <div className="bg-red-100 p-2 rounded-full">
                     <X className="text-red-600 w-5 h-5" />
                   </div>
-                  <CardTitle className="text-md">Rejected</CardTitle>
+                  <CardTitle className="text-md text-red-800">Rejected</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4">
                   <p className="text-3xl md:text-4xl font-bold text-red-800">{pitches.filter(p => p.status === 'rejected').length}</p>
@@ -170,7 +170,7 @@ const FounderDashboard = () => {
                   <div className="bg-blue-100 p-2 rounded-full">
                     <Send className="text-blue-600 w-5 h-5" />
                   </div>
-                  <CardTitle className="text-md">Forwarded</CardTitle>
+                  <CardTitle className="text-md text-blue-800">Forwarded</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4">
                   <p className="text-3xl md:text-4xl font-bold text-blue-800">{pitches.filter(p => p.status === 'forwarded').length}</p>
@@ -193,7 +193,7 @@ const FounderDashboard = () => {
                     >
                       <div className="flex justify-between items-center">
                         <div>
-                          <h3 className="text-lg font-semibold">{pitch.companyName}</h3>
+                          <h3 className="text-lg font-semibold text-blue-800">{pitch.companyName}</h3>
                           <p className="text-sm text-gray-500">Submitted on {new Date(pitch.createdAt).toLocaleDateString()}</p>
                         </div>
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPitchStatusColor(pitch.status)}`}>

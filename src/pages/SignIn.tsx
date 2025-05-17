@@ -71,7 +71,7 @@ const SignIn = () => {
         <AnimatedBackground />
 
         <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-          <h2 className="text-center text-3xl font-bold text-gray-900">Welcome back</h2>
+          <h2 className="text-center text-3xl font-bold text-gray-400">Welcome back</h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Don't have an account?{" "}
             <Link to="/signup" className="font-medium text-primary hover:text-primary/80">
@@ -88,7 +88,7 @@ const SignIn = () => {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel className="text-center text-m font-bold text-gray-900">Email</FormLabel>
                     <FormControl>
                       <Input placeholder="Enter your email" {...field} />
                     </FormControl>
@@ -102,7 +102,7 @@ const SignIn = () => {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel className="text-center text-m font-bold text-gray-900">Password</FormLabel>
                     <FormControl>
                       <Input type="password" placeholder="Enter your password" {...field} />
                     </FormControl>
@@ -123,13 +123,13 @@ const SignIn = () => {
                   </label>
                 </div>
                 <div className="text-sm">
-                  <a href="#" className="font-medium text-primary hover:text-primary/80">
+                  <a href="#" className="ml-2 block text-sm text-gray-900 hover:text-primary">
                     Forgot your password?
                   </a>
                 </div>
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full text-gray-900" disabled={isLoading}>
                 {isLoading ? "Signing in..." : "Sign in"}
               </Button>
             </form>
