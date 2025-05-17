@@ -40,12 +40,12 @@ const FounderDashboard = () => {
     // Subscribe to changes on the pitches table
     const channel = supabase
       .channel('public:pitches')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'pitches' 
-        }, 
+      .on('postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'pitches'
+        },
         () => {
           // Invalidate and refetch pitches when changes occur
           queryClient.invalidateQueries({ queryKey: ['founderPitches', user?.id] });
@@ -113,28 +113,33 @@ const FounderDashboard = () => {
   return (
     <MainLayout>
       <div className="container mx-auto px-4 py-4 md:py-8">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 md:mb-8 gap-4">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 md:p-8 mb-8 flex flex-col md:flex-row justify-between items-start md:items-center shadow-sm">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Founder Dashboard</h1>
-            <p className="text-gray-600">Track your pitches and stay updated</p>
+            <h1 className="text-3xl font-bold text-gray-800">🎯 Founder Dashboard</h1>
+            <p className="text-gray-600 mt-1">Track your startup pitches and stay in the loop</p>
           </div>
-          <Button onClick={() => navigate('/submit')} className="w-full md:w-auto">
+          <Button onClick={() => navigate('/submit')} className="mt-4 md:mt-0">
             <PlusCircle className="mr-2 h-5 w-5" /> Submit New Pitch
           </Button>
         </div>
+
 
         {pitches && pitches.length > 0 ? (
           <>
             {/* Summary Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
-              <Card>
-                <CardHeader className="bg-blue-50 pb-3">
-                  <CardTitle className="text-lg">Total Pitches</CardTitle>
+              <Card className="transition-transform hover:scale-[1.02]">
+                <CardHeader className="bg-blue-50 pb-3 flex flex-row items-center gap-3">
+                  <div className="bg-blue-100 p-2 rounded-full">
+                    <BarChart3 className="text-blue-600 w-5 h-5" />
+                  </div>
+                  <CardTitle className="text-md">Total Pitches</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4">
-                  <p className="text-3xl md:text-4xl font-bold">{pitches.length}</p>
+                  <p className="text-4xl font-bold text-blue-800">{pitches.length}</p>
                 </CardContent>
               </Card>
+
 
               <Card>
                 <CardHeader className="bg-green-50 pb-3">
@@ -164,11 +169,14 @@ const FounderDashboard = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {recentPitches.map(pitch => (
-                    <div key={pitch.id} className="border rounded-lg p-3 md:p-4">
-                      <div className="flex flex-col sm:flex-row sm:justify-between gap-2 sm:gap-0">
+                    <div
+                      key={pitch.id}
+                      className="bg-white border border-gray-200 shadow-sm rounded-lg p-4 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex justify-between items-center">
                         <div>
-                          <h3 className="font-semibold text-base md:text-lg">{pitch.companyName}</h3>
-                          <p className="text-xs md:text-sm text-gray-500">Submitted on {new Date(pitch.createdAt).toLocaleDateString()}</p>
+                          <h3 className="text-lg font-semibold">{pitch.companyName}</h3>
+                          <p className="text-sm text-gray-500">Submitted on {new Date(pitch.createdAt).toLocaleDateString()}</p>
                         </div>
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPitchStatusColor(pitch.status)}`}>
                           {getPitchStatusIcon(pitch.status)}
@@ -176,6 +184,7 @@ const FounderDashboard = () => {
                         </span>
                       </div>
                     </div>
+
                   ))}
                 </CardContent>
               </Card>
@@ -201,7 +210,8 @@ const FounderDashboard = () => {
                     </TableHeader>
                     <TableBody>
                       {pitches.map(pitch => (
-                        <TableRow key={pitch.id}>
+                        <TableRow key={pitch.id}
+                          className="hover:bg-gray-50 transition-colors">
                           <TableCell className="font-medium">{pitch.companyName}</TableCell>
                           <TableCell className="hidden md:table-cell">{new Date(pitch.createdAt).toLocaleDateString()}</TableCell>
                           <TableCell>
@@ -235,12 +245,13 @@ const FounderDashboard = () => {
                   {pitches
                     .filter(p => p.status === 'shortlisted')
                     .map(pitch => (
-                      <div key={`feedback-${pitch.id}`} className="mb-4 p-4 border rounded-lg">
-                        <h3 className="font-semibold">{pitch.companyName}</h3>
-                        <p className="text-sm text-gray-600 mt-1">
-                          Your pitch was shortlisted! An investor will contact you soon for further discussion.
+                      <div key={`feedback-${pitch.id}`} className="mb-4 p-5 border-l-4 border-green-500 bg-green-50 rounded-lg shadow-sm">
+                        <h3 className="text-lg font-semibold text-green-700">{pitch.companyName}</h3>
+                        <p className="text-sm text-gray-700 mt-1 italic">
+                          "Your pitch was shortlisted! An investor will contact you soon for further discussion."
                         </p>
                       </div>
+
                     ))}
                 </CardContent>
               </Card>
@@ -248,13 +259,14 @@ const FounderDashboard = () => {
           </>
         ) : (
           <div className="text-center py-16 md:py-20">
-            <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-            <h2 className="text-xl md:text-2xl font-semibold mb-2">No pitches submitted yet</h2>
-            <p className="text-gray-600 mb-6">Start by submitting your first pitch to get feedback.</p>
+            <img src="public\images\undraw_processing_bto8.svg" alt="No Pitches" className="h-32 mx-auto mb-6" />
+            <h2 className="text-2xl font-semibold mb-2">No pitches submitted yet</h2>
+            <p className="text-gray-600 mb-4">Start your journey by submitting your first pitch.</p>
             <Button onClick={() => navigate('/submit')}>
               <PlusCircle className="mr-2 h-5 w-5" /> Submit a Pitch
             </Button>
           </div>
+
         )}
       </div>
     </MainLayout>
