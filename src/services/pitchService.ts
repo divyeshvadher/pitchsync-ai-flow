@@ -1,6 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
+import { useAuth } from '@/context/AuthContext';
 
 export interface Pitch {
   id: string;
@@ -127,16 +127,18 @@ export const getPitches = async (): Promise<Pitch[]> => {
   try {
     const { data, error } = await supabase
       .from('pitches')
-      .select('*');
+      .select(`
+        *,
+        profiles:user_id (name, email)
+      `);
 
     if (error) {
       console.error('Error fetching pitches:', error);
-      // Fallback to mock data in case of error
-      return [...mockPitches];
+      return [];
     }
 
     if (!data || data.length === 0) {
-      return [...mockPitches];
+      return [];
     }
 
     // Transform database records to Pitch interface
@@ -155,12 +157,16 @@ export const getPitches = async (): Promise<Pitch[]> => {
         { question: 'Tell us about your team.', answer: team },
         { question: 'What are your growth projections?', answer: growth }
       ];
+      
+      // Get founder name and email from profiles join
+      const founderName = pitch.profiles?.name || 'Unknown Founder';
+      const founderEmail = pitch.profiles?.email || '';
 
       return {
         id: pitch.id,
         companyName: pitch.company_name,
-        founderName: pitch.user_id, // In a real app, we'd join with profiles to get name
-        email: '', // Would need to be fetched separately from auth or profiles
+        founderName: founderName,
+        email: founderEmail,
         industry: pitch.industry || '',
         location: pitch.location || '',
         description: pitch.company_description || '',
@@ -177,7 +183,80 @@ export const getPitches = async (): Promise<Pitch[]> => {
     });
   } catch (error) {
     console.error('Error in getPitches:', error);
-    return [...mockPitches];
+    return [];
+  }
+};
+
+// Get pitches filtered by the current user's email
+export const getFounderPitches = async (userEmail: string): Promise<Pitch[]> => {
+  try {
+    // Get user from auth
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.error('No authenticated user found');
+      return [];
+    }
+    
+    // Get pitches by user_id
+    const { data, error } = await supabase
+      .from('pitches')
+      .select(`
+        *,
+        profiles:user_id (name, email)
+      `)
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error fetching founder pitches:', error);
+      return [];
+    }
+    
+    if (!data || data.length === 0) {
+      return [];
+    }
+    
+    // Transform database records to Pitch interface (same as in getPitches)
+    return data.map(pitch => {
+      const problemStatement = pitch.problem_statement || '';
+      const solution = pitch.solution_description || '';
+      const traction = pitch.traction || '';
+      const team = pitch.team_description || '';
+      const growth = pitch.growth_projections || '';
+      
+      const answers = [
+        { question: 'What problem are you solving?', answer: problemStatement },
+        { question: 'What is your unique solution?', answer: solution },
+        { question: 'What traction do you have?', answer: traction },
+        { question: 'Tell us about your team.', answer: team },
+        { question: 'What are your growth projections?', answer: growth }
+      ];
+      
+      const founderName = pitch.profiles?.name || 'Unknown Founder';
+      const founderEmail = pitch.profiles?.email || '';
+
+      return {
+        id: pitch.id,
+        companyName: pitch.company_name,
+        founderName: founderName,
+        email: founderEmail || userEmail,
+        industry: pitch.industry || '',
+        location: pitch.location || '',
+        description: pitch.company_description || '',
+        fundingStage: pitch.funding_stage || '',
+        fundingAmount: String(pitch.funding_amount || '0'),
+        pitchDeckUrl: pitch.pitch_deck_url || '/placeholder.svg',
+        videoUrl: pitch.intro_video_url,
+        status: pitch.status as Pitch['status'] || 'new',
+        createdAt: pitch.created_at || new Date().toISOString(),
+        answers,
+        aiSummary: `${pitch.company_name} is developing ${pitch.company_description} The founder is seeking ${pitch.funding_amount} at ${pitch.funding_stage} stage.`,
+        aiScore: pitch.ai_score || Math.floor(Math.random() * 30) + 65,
+      };
+    });
+  } catch (error) {
+    console.error('Error in getFounderPitches:', error);
+    return [];
   }
 };
 

@@ -1,151 +1,96 @@
 
-import React, { useState, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { getPitches, Pitch } from '@/services/pitchService';
-import { Button } from '@/components/ui/button';
-import { Search, Filter, ArrowLeft, ArrowRight } from 'lucide-react';
-import { 
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselPrevious,
-  CarouselNext,
-} from '@/components/ui/carousel';
-import Web3PitchCard from './Web3PitchCard';
-import { Input } from '@/components/ui/input';
-import { useIsMobile } from '@/hooks/use-mobile';
+import React from 'react';
+import { Pitch } from '@/services/pitchService';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const domains = ['All', 'AI', 'Web3', 'Fintech', 'Health', 'EdTech'];
+interface Web3PitchCarouselProps {
+  pitches?: Pitch[];
+  isLoading?: boolean;
+}
 
-const Web3PitchCarousel: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedDomain, setSelectedDomain] = useState('All');
-  const isMobile = useIsMobile();
-  const searchInputRef = useRef<HTMLInputElement>(null);
+const Web3PitchCarousel: React.FC<Web3PitchCarouselProps> = ({ 
+  pitches = [],
+  isLoading = false
+}) => {
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 mb-12">
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-[320px] rounded-lg" />
+        ))}
+      </div>
+    );
+  }
 
-  const { data: pitches, isLoading } = useQuery({
-    queryKey: ['pitches'],
-    queryFn: getPitches,
-  });
-
-  const filteredPitches = pitches?.filter((pitch: Pitch) => {
-    const matchesSearch = 
-      pitch.companyName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      pitch.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesDomain = 
-      selectedDomain === 'All' || 
-      pitch.industry.toLowerCase() === selectedDomain.toLowerCase();
-    
-    return matchesSearch && matchesDomain;
-  });
-
-  const handleDomainSelect = (domain: string) => {
-    setSelectedDomain(domain);
-  };
-
-  const handleSearchFocus = () => {
-    if (searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-  };
+  if (pitches.length === 0) {
+    return (
+      <div className="glass-card p-8 text-center">
+        <h3 className="text-xl font-semibold text-white mb-2">No pitches available</h3>
+        <p className="text-gray-400">Be the first to submit a pitch!</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full space-y-6 animate-fade-in py-4">
-      {/* Search and Filter */}
-      <div className="flex flex-col md:flex-row justify-between gap-4 px-4 md:px-0">
-        <div className="relative w-full md:w-72">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3">
-            <Search size={18} className="text-muted-foreground" />
+    <div className="overflow-x-auto pb-4">
+      <div className="flex space-x-6 min-w-max">
+        {pitches.map((pitch) => (
+          <div
+            key={pitch.id}
+            className="w-72 md:w-80 flex-shrink-0 glass-card p-2 rounded-lg flex flex-col 
+                      relative group transition-all duration-300 hover:scale-[1.02] overflow-hidden
+                      border border-neon-purple/30 hover:border-neon-purple/70"
+          >
+            <div
+              className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-neon-purple/20 opacity-50 
+                        group-hover:opacity-70 transition-opacity z-0"
+            ></div>
+
+            <div className="p-4 z-10 relative">
+              <h3 className="text-lg font-bold text-white mb-1">{pitch.companyName}</h3>
+              <div className="flex justify-between items-center mb-3">
+                <div className="flex items-center">
+                  <div className="text-xs py-1 px-2 rounded-full bg-neon-blue/20 text-neon-blue font-mono">
+                    {pitch.industry || "Tech"}
+                  </div>
+                </div>
+                <div className="text-xs text-gray-400">{pitch.location}</div>
+              </div>
+              <p className="text-sm text-gray-300 line-clamp-3 mb-3 min-h-[60px]">
+                {pitch.description}
+              </p>
+
+              <div className="mt-auto">
+                <div className="flex justify-between text-xs text-gray-400 mb-3">
+                  <span>{pitch.fundingStage}</span>
+                  <span>Seeking: {pitch.fundingAmount}</span>
+                </div>
+
+                <div className="relative pt-2">
+                  <div className="flex justify-between mb-1 text-xs">
+                    <span className="text-gray-400">AI Score</span>
+                    <span className="text-neon-purple font-mono">{pitch.aiScore}/100</span>
+                  </div>
+                  <div className="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-neon-blue to-neon-purple"
+                      style={{ width: `${pitch.aiScore}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                className="mt-4 w-full py-2 bg-transparent border border-neon-purple/50 rounded-md
+                        text-neon-purple text-sm hover:bg-neon-purple/10 transition-colors
+                        group-hover:border-neon-purple"
+              >
+                View Details
+              </button>
+            </div>
           </div>
-          <Input
-            ref={searchInputRef}
-            type="search"
-            placeholder="Search pitches..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-cyber-dark/80 border-neon-purple/30 focus:border-neon-purple/80 
-                       focus:shadow-[0_0_8px_theme('colors.neon.purple')] transition-all"
-          />
-        </div>
-        
-        <div className="flex items-center overflow-x-auto scrollbar-none space-x-2 pb-2 md:pb-0">
-          {domains.map((domain) => (
-            <Button
-              key={domain}
-              variant="outline"
-              size="sm"
-              onClick={() => handleDomainSelect(domain)}
-              className={`
-                cyber-button whitespace-nowrap px-4 py-2 text-xs
-                ${selectedDomain === domain 
-                  ? 'bg-neon-purple/20 border-neon-purple text-neon-purple shadow-[0_0_8px_theme(\'colors.neon.purple\')]' 
-                  : ''}
-              `}
-            >
-              {domain === 'All' && <Filter size={14} className="mr-2" />}
-              {domain}
-            </Button>
-          ))}
-        </div>
+        ))}
       </div>
-
-      {/* Carousel */}
-      {isLoading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="relative w-16 h-16">
-            <div className="absolute top-0 left-0 w-full h-full border-4 border-neon-purple/20 border-t-neon-purple rounded-full animate-spin"></div>
-          </div>
-        </div>
-      ) : filteredPitches && filteredPitches.length > 0 ? (
-        <Carousel
-          opts={{
-            align: "start",
-            loop: true,
-          }}
-          className="w-full"
-        >
-          <CarouselContent className="px-4 md:px-0">
-            {filteredPitches.map((pitch) => (
-              <CarouselItem key={pitch.id} className="md:basis-1/2 lg:basis-1/3 xl:basis-1/4">
-                <Web3PitchCard pitch={pitch} />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <div className="hidden md:flex justify-end mt-6 space-x-4">
-            <CarouselPrevious className="relative h-10 w-10 cyber-button rounded-full inset-auto
-                                        left-auto transform-none" />
-            <CarouselNext className="relative h-10 w-10 cyber-button rounded-full inset-auto
-                                       right-auto transform-none" />
-          </div>
-        </Carousel>
-      ) : (
-        <div className="flex flex-col items-center justify-center h-64 bg-cyber-dark/50 rounded-xl border border-white/10">
-          <p className="text-gray-400 mb-4">No pitches found matching your criteria</p>
-          <Button
-            variant="outline" 
-            className="cyber-button"
-            onClick={() => {
-              setSearchTerm('');
-              setSelectedDomain('All');
-            }}
-          >
-            Reset filters
-          </Button>
-        </div>
-      )}
-
-      {/* Mobile search button */}
-      {isMobile && (
-        <div className="fixed bottom-6 right-6 z-10">
-          <Button
-            className="rounded-full w-14 h-14 bg-neon-purple border-white/20 shadow-neon"
-            onClick={handleSearchFocus}
-          >
-            <Search size={24} />
-          </Button>
-        </div>
-      )}
     </div>
   );
 };

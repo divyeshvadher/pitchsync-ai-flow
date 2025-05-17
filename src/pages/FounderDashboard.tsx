@@ -14,7 +14,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Pitch, getPitches } from '@/services/pitchService';
+import { Pitch, getFounderPitches } from '@/services/pitchService';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const FounderDashboard = () => {
@@ -27,10 +27,10 @@ const FounderDashboard = () => {
   const { data: pitches, isLoading: isPitchesLoading, error: pitchesError } = useQuery({
     queryKey: ['founderPitches', user?.id],
     queryFn: async () => {
-      const allPitches = await getPitches();
-      return allPitches.filter(pitch => pitch.email === user?.email);
+      if (!user?.email) throw new Error("User email is required");
+      return getFounderPitches(user.email);
     },
-    enabled: !!user?.id,
+    enabled: !!user?.email,
   });
 
   // Set up real-time subscription
@@ -44,7 +44,8 @@ const FounderDashboard = () => {
         {
           event: '*',
           schema: 'public',
-          table: 'pitches'
+          table: 'pitches',
+          filter: `user_id=eq.${user.id}`
         },
         () => {
           // Invalidate and refetch pitches when changes occur
@@ -259,14 +260,13 @@ const FounderDashboard = () => {
           </>
         ) : (
           <div className="text-center py-16 md:py-20">
-            <img src="public\images\undraw_processing_bto8.svg" alt="No Pitches" className="h-32 mx-auto mb-6" />
+            <img src="/images/undraw_processing_bto8.svg" alt="No Pitches" className="h-32 mx-auto mb-6" />
             <h2 className="text-2xl font-semibold mb-2">No pitches submitted yet</h2>
             <p className="text-gray-600 mb-4">Start your journey by submitting your first pitch.</p>
             <Button onClick={() => navigate('/submit')}>
               <PlusCircle className="mr-2 h-5 w-5" /> Submit a Pitch
             </Button>
           </div>
-
         )}
       </div>
     </MainLayout>

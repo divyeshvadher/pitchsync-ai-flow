@@ -1,12 +1,51 @@
 
 import React, { useEffect } from 'react';
 import MainLayout from '@/components/MainLayout';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { useSearchParams } from 'react-router-dom';
 import Web3PitchCarousel from '@/components/Web3PitchCarousel';
+import { getPitches } from '@/services/pitchService';
+import { useAuth } from '@/context/AuthContext';
 
 const Web3InvestorDashboard: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const currentView = searchParams.get('view') || 'dashboard';
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Fetch all pitches
+  const { data: pitches, isLoading } = useQuery({
+    queryKey: ['investorPitches'],
+    queryFn: getPitches,
+    enabled: !!user?.id,
+  });
+
+  // Set up real-time subscription
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    // Subscribe to changes on the pitches table
+    const channel = supabase
+      .channel('public:pitches')
+      .on('postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'pitches',
+        },
+        () => {
+          // Invalidate and refetch pitches when changes occur
+          queryClient.invalidateQueries({ queryKey: ['investorPitches'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      // Unsubscribe when component unmounts
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
 
   return (
     <MainLayout>
@@ -18,8 +57,8 @@ const Web3InvestorDashboard: React.FC = () => {
           <p className="text-gray-400 mt-2 font-mono">Browse, filter, and connect with the next big things</p>
         </div>
         
-        {/* Carousel Section */}
-        <Web3PitchCarousel />
+        {/* Carousel Section with real data */}
+        <Web3PitchCarousel pitches={pitches || []} isLoading={isLoading} />
         
         {/* Additional dashboard content */}
         <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -29,12 +68,15 @@ const Web3InvestorDashboard: React.FC = () => {
               Recent Activity
             </h2>
             <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="border-b border-white/10 pb-3 last:border-0">
-                  <p className="text-white/90">New pitch submitted from <span className="text-neon-cyan">TechVenture #{i}</span></p>
-                  <p className="text-xs text-gray-400">{i} hour{i !== 1 ? 's' : ''} ago</p>
+              {pitches && pitches.slice(0, 3).map((pitch) => (
+                <div key={pitch.id} className="border-b border-white/10 pb-3 last:border-0">
+                  <p className="text-white/90">New pitch submitted from <span className="text-neon-cyan">{pitch.companyName}</span></p>
+                  <p className="text-xs text-gray-400">{new Date(pitch.createdAt).toLocaleTimeString()}</p>
                 </div>
               ))}
+              {(!pitches || pitches.length === 0) && (
+                <div className="text-gray-400">No recent activity</div>
+              )}
             </div>
           </div>
           
