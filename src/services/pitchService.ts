@@ -1,6 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
-import { useAuth } from '@/context/AuthContext';
 
 export interface Pitch {
   id: string;
@@ -158,7 +157,8 @@ export const getPitches = async (): Promise<Pitch[]> => {
         { question: 'What are your growth projections?', answer: growth }
       ];
       
-      // Get founder name and email from profiles join
+      // Fixed: Get founder name and email from profiles join
+      // Correctly type and access the profiles data
       const founderName = pitch.profiles?.name || 'Unknown Founder';
       const founderEmail = pitch.profiles?.email || '';
 
@@ -232,14 +232,16 @@ export const getFounderPitches = async (userEmail: string): Promise<Pitch[]> => 
         { question: 'What are your growth projections?', answer: growth }
       ];
       
+      // Fixed: Get founder name and email from profiles join
+      // Correctly type and access the profiles data
       const founderName = pitch.profiles?.name || 'Unknown Founder';
-      const founderEmail = pitch.profiles?.email || '';
+      const founderEmail = pitch.profiles?.email || userEmail;
 
       return {
         id: pitch.id,
         companyName: pitch.company_name,
         founderName: founderName,
-        email: founderEmail || userEmail,
+        email: founderEmail,
         industry: pitch.industry || '',
         location: pitch.location || '',
         description: pitch.company_description || '',
