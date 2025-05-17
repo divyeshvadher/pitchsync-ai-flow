@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -6,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import MainLayout from '@/components/MainLayout';
-import { Check, X, Clock, BarChart3, PlusCircle } from 'lucide-react';
+import { Check, X, Clock, BarChart3, PlusCircle, Send, Pencil } from 'lucide-react';
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle
 } from "@/components/ui/card";
@@ -64,6 +63,7 @@ const FounderDashboard = () => {
     switch (status) {
       case 'shortlisted': return <Check className="h-5 w-5 text-green-500" />;
       case 'rejected': return <X className="h-5 w-5 text-red-500" />;
+      case 'forwarded': return <Send className="h-5 w-5 text-blue-500" />;
       default: return <Clock className="h-5 w-5 text-yellow-500" />;
     }
   };
@@ -127,8 +127,8 @@ const FounderDashboard = () => {
 
         {pitches && pitches.length > 0 ? (
           <>
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
+            {/* Summary Cards - Modified to show 4 cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
               <Card className="transition-transform hover:scale-[1.02]">
                 <CardHeader className="bg-blue-50 pb-3 flex flex-row items-center gap-3">
                   <div className="bg-blue-100 p-2 rounded-full">
@@ -141,22 +141,39 @@ const FounderDashboard = () => {
                 </CardContent>
               </Card>
 
-
               <Card>
-                <CardHeader className="bg-green-50 pb-3">
-                  <CardTitle className="text-lg">Shortlisted</CardTitle>
+                <CardHeader className="bg-green-50 pb-3 flex flex-row items-center gap-3">
+                  <div className="bg-green-100 p-2 rounded-full">
+                    <Check className="text-green-600 w-5 h-5" />
+                  </div>
+                  <CardTitle className="text-md">Shortlisted</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4">
-                  <p className="text-3xl md:text-4xl font-bold">{pitches.filter(p => p.status === 'shortlisted').length}</p>
+                  <p className="text-3xl md:text-4xl font-bold text-green-800">{pitches.filter(p => p.status === 'shortlisted').length}</p>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader className="bg-yellow-50 pb-3">
-                  <CardTitle className="text-lg">Under Review</CardTitle>
+                <CardHeader className="bg-red-50 pb-3 flex flex-row items-center gap-3">
+                  <div className="bg-red-100 p-2 rounded-full">
+                    <X className="text-red-600 w-5 h-5" />
+                  </div>
+                  <CardTitle className="text-md">Rejected</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4">
-                  <p className="text-3xl md:text-4xl font-bold">{pitches.filter(p => p.status === 'new').length}</p>
+                  <p className="text-3xl md:text-4xl font-bold text-red-800">{pitches.filter(p => p.status === 'rejected').length}</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="bg-blue-50 pb-3 flex flex-row items-center gap-3">
+                  <div className="bg-blue-100 p-2 rounded-full">
+                    <Send className="text-blue-600 w-5 h-5" />
+                  </div>
+                  <CardTitle className="text-md">Forwarded</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <p className="text-3xl md:text-4xl font-bold text-blue-800">{pitches.filter(p => p.status === 'forwarded').length}</p>
                 </CardContent>
               </Card>
             </div>
@@ -191,7 +208,7 @@ const FounderDashboard = () => {
               </Card>
             </div>
 
-            {/* All Pitches Table */}
+            {/* All Pitches Table - Modified with Edit button */}
             <Card className="mb-6 md:mb-8 overflow-hidden">
               <CardHeader className="pb-3">
                 <CardTitle>Your Pitches</CardTitle>
@@ -223,9 +240,14 @@ const FounderDashboard = () => {
                           </TableCell>
                           <TableCell className="hidden md:table-cell">{pitch.aiScore || 'N/A'}</TableCell>
                           <TableCell>
-                            <Button variant="outline" size="sm" onClick={() => navigate(`/pitch/${pitch.id}`)}>
-                              View
-                            </Button>
+                            <div className="flex space-x-2">
+                              <Button variant="outline" size="sm" onClick={() => navigate(`/edit-pitch/${pitch.id}`)}>
+                                <Pencil className="w-4 h-4 mr-1" /> Edit
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => navigate(`/pitch/${pitch.id}`)}>
+                                View
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
