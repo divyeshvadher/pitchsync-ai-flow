@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -128,7 +129,7 @@ export const getPitches = async (): Promise<Pitch[]> => {
       .from('pitches')
       .select(`
         *,
-        profiles:user_id (name, email)
+        profiles:user_id (name, role)
       `);
 
     if (error) {
@@ -157,10 +158,12 @@ export const getPitches = async (): Promise<Pitch[]> => {
         { question: 'What are your growth projections?', answer: growth }
       ];
       
-      // Fixed: Get founder name and email from profiles join
-      // Correctly type and access the profiles data
-      const founderName = pitch.profiles?.name || 'Unknown Founder';
-      const founderEmail = pitch.profiles?.email || '';
+      // Use only name from profiles, as email doesn't exist in the profiles table
+      const founderName = pitch.profiles ? pitch.profiles.name || 'Unknown Founder' : 'Unknown Founder';
+      
+      // Since email isn't in the profiles table, we'll leave it empty 
+      // It would need to be fetched separately from auth.users, but we don't have direct access
+      const founderEmail = '';
 
       return {
         id: pitch.id,
@@ -203,7 +206,7 @@ export const getFounderPitches = async (userEmail: string): Promise<Pitch[]> => 
       .from('pitches')
       .select(`
         *,
-        profiles:user_id (name, email)
+        profiles:user_id (name, role)
       `)
       .eq('user_id', user.id);
 
@@ -232,10 +235,11 @@ export const getFounderPitches = async (userEmail: string): Promise<Pitch[]> => 
         { question: 'What are your growth projections?', answer: growth }
       ];
       
-      // Fixed: Get founder name and email from profiles join
-      // Correctly type and access the profiles data
-      const founderName = pitch.profiles?.name || 'Unknown Founder';
-      const founderEmail = pitch.profiles?.email || userEmail;
+      // Use only name from profiles, as email doesn't exist in the profiles table
+      const founderName = pitch.profiles ? pitch.profiles.name || 'Unknown Founder' : 'Unknown Founder';
+      
+      // Use the userEmail parameter as the email since it's not in the profiles table
+      const founderEmail = userEmail;
 
       return {
         id: pitch.id,
