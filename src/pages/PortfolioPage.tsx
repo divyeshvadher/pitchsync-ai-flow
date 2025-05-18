@@ -3,8 +3,8 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getPitches } from '@/services/pitchService';
 import { useAuth } from '@/context/AuthContext';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { ChartContainer, ChartTooltip } from '@/components/ui/chart';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { PieChart as PieChartIcon } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -71,6 +71,10 @@ const PortfolioPage: React.FC = () => {
   
   // Define chart colors
   const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F', '#FFBB28'];
+
+  // Custom tooltip formatter
+  const customTooltipFormatter = (value: number) => [`$${value.toLocaleString()}`, 'Amount'];
+  const customLabelFormatter = (label: any) => label;
   
   return (
     <MainLayout>
@@ -175,14 +179,9 @@ const PortfolioPage: React.FC = () => {
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <ChartTooltip
-                        content={(props) => (
-                          <ChartTooltipContent 
-                            {...props}
-                            formatter={(value: number) => [`$${value.toLocaleString()}`, 'Amount']}
-                            labelFormatter={(label) => label}
-                          />
-                        )}
+                      <Tooltip 
+                        formatter={customTooltipFormatter}
+                        labelFormatter={customLabelFormatter}
                       />
                     </PieChart>
                   </ResponsiveContainer>
@@ -241,14 +240,9 @@ const PortfolioPage: React.FC = () => {
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <ChartTooltip
-                        content={(props) => (
-                          <ChartTooltipContent 
-                            {...props}
-                            formatter={(value: number) => [`$${value.toLocaleString()}`, 'Amount']}
-                            labelFormatter={(label) => label}
-                          />
-                        )}
+                      <Tooltip 
+                        formatter={customTooltipFormatter}
+                        labelFormatter={customLabelFormatter}
                       />
                     </PieChart>
                   </ResponsiveContainer>
