@@ -80,7 +80,10 @@ export const getPitchById = async (id: string): Promise<Pitch | undefined> => {
   try {
     const { data, error } = await supabase
       .from('pitches')
-      .select('*')
+      .select(`
+        *,
+        profiles:user_id (name, role)
+      `)
       .eq('id', id)
       .single();
 

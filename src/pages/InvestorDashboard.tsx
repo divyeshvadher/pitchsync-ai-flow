@@ -13,7 +13,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, X, Send, Clock } from 'lucide-react';
+import { Check, X, Send, Clock, Eye } from 'lucide-react';
 
 const InvestorDashboard = () => {
   const { user } = useAuth();
@@ -70,6 +70,10 @@ const InvestorDashboard = () => {
       case 'forwarded': return 'bg-blue-100 text-blue-800';
       default: return 'bg-yellow-100 text-yellow-800';
     }
+  };
+
+  const handleViewPitch = (pitchId: string) => {
+    navigate(`/pitch/${pitchId}`);
   };
 
   if (isLoading) {
@@ -134,8 +138,14 @@ const InvestorDashboard = () => {
                         </TableCell>
                         <TableCell className="hidden md:table-cell">{pitch.aiScore || 'N/A'}</TableCell>
                         <TableCell>
-                          <Button size="sm" variant="outline" onClick={() => navigate(`/pitch/${pitch.id}`)}>
-                            View
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => handleViewPitch(pitch.id)}
+                            className="flex items-center gap-1"
+                          >
+                            <Eye className="h-4 w-4" />
+                            <span className="hidden sm:inline">View</span>
                           </Button>
                         </TableCell>
                       </TableRow>

@@ -1,7 +1,9 @@
 
 import React from 'react';
-import { Pitch } from '@/services/pitchService';
+import { useNavigate } from 'react-router-dom';
+import { Pitch } from '@/services/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Eye } from 'lucide-react';
 
 interface Web3PitchCarouselProps {
   pitches?: Pitch[];
@@ -12,6 +14,12 @@ const Web3PitchCarousel: React.FC<Web3PitchCarouselProps> = ({
   pitches = [],
   isLoading = false
 }) => {
+  const navigate = useNavigate();
+
+  const handleViewPitch = (pitchId: string) => {
+    navigate(`/pitch/${pitchId}`);
+  };
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 mb-12">
@@ -83,8 +91,10 @@ const Web3PitchCarousel: React.FC<Web3PitchCarouselProps> = ({
               <button
                 className="mt-4 w-full py-2 bg-transparent border border-neon-purple/50 rounded-md
                         text-neon-purple text-sm hover:bg-neon-purple/10 transition-colors
-                        group-hover:border-neon-purple"
+                        group-hover:border-neon-purple flex items-center justify-center gap-2"
+                onClick={() => handleViewPitch(pitch.id)}
               >
+                <Eye size={16} />
                 View Details
               </button>
             </div>
