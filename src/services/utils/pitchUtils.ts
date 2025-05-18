@@ -18,11 +18,12 @@ export const transformDatabasePitchToPitch = (pitch: any): Pitch => {
     { question: 'What are your growth projections?', answer: growth }
   ];
   
-  // Use only name from profiles, as email doesn't exist in the profiles table
+  // Extract founder name from profiles
   const founderName = pitch.profiles ? pitch.profiles.name || 'Unknown Founder' : 'Unknown Founder';
   
-  // Since email isn't in the profiles table, we'll leave it empty 
-  const founderEmail = '';
+  // Get email from auth.users through a join or use an empty string if not available
+  // This would require a proper join in the query that fetches the pitch data
+  const founderEmail = pitch.founder_email || '';
 
   return {
     id: pitch.id,

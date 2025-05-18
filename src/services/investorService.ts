@@ -130,3 +130,22 @@ export const updateMultiplePitchesStatus = async (pitchIds: string[], status: st
     return false;
   }
 };
+
+// Get portfolio analytics data
+export const getPortfolioAnalytics = async () => {
+  try {
+    // In a real application, this would query aggregated data from Supabase
+    // For now, we're using the client-side implementation with local storage
+    
+    // Placeholder implementation
+    return {
+      totalCompanies: 0,
+      totalFunding: 0,
+      industryBreakdown: [],
+      stageBreakdown: []
+    };
+  } catch (error) {
+    console.error('Error getting portfolio analytics:', error);
+    return null;
+  }
+};

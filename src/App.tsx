@@ -17,10 +17,10 @@ import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Web3InvestorDashboard from "./pages/Web3InvestorDashboard";
+import PortfolioPage from "./pages/PortfolioPage";
 
 // These are placeholder pages for the investor navigation
 const DealsPage = () => <InvestorDashboard />;
-const PortfolioPage = () => <div>Portfolio Page</div>;
 const NotesPage = () => <div>Notes Page</div>;
 const AnalyticsPage = () => <div>Analytics Page</div>;
 const MessagesPage = () => <div>Messages Page</div>;
