@@ -1,14 +1,15 @@
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Search, Filter, Tag, Calendar, 
   User, LogOut, Menu, ChevronRight, X 
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import Web3Background from './Web3Background';
 import { useIsMobile } from '@/hooks/use-mobile';
+import InvestorNavigation from './InvestorNavigation';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -16,7 +17,6 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { profile, signOut, isFounder, isInvestor } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -26,14 +26,20 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     await signOut();
   };
 
-  // Close mobile menu when navigating to a new page
-  const handleNavigation = (path: string) => {
-    if (isMobile) {
-      setMobileMenuOpen(false);
-    }
-    navigate(path);
-  };
+  // Use the new InvestorNavigation component for investors
+  if (isInvestor) {
+    return (
+      <div className="flex h-screen w-full bg-background overflow-hidden relative">
+        <Web3Background />
+        <InvestorNavigation profile={profile} signOut={handleSignOut} />
+        <main className={`flex-1 overflow-y-auto scrollbar-none p-6 md:p-6 lg:p-8 ${isMobile ? 'pt-24' : ''}`}>
+          {children}
+        </main>
+      </div>
+    );
+  }
 
+  // Continue using the existing layout for founders
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden relative">
       <Web3Background />
@@ -77,7 +83,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   <Button 
                     variant="ghost"
                     className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent"
-                    onClick={() => handleNavigation('/dashboard')}
+                    onClick={() => setMobileMenuOpen(false)}
                   >
                     <LayoutDashboard size={20} className="mr-3 text-neon-purple" />
                     <span className="font-mono tracking-wide">DASHBOARD</span>
@@ -87,7 +93,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   <Button 
                     variant="ghost"
                     className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent"
-                    onClick={() => handleNavigation('/dashboard?view=search')}
+                    onClick={() => setMobileMenuOpen(false)}
                   >
                     <Search size={20} className="mr-3 text-neon-blue" />
                     <span className="font-mono tracking-wide">SEARCH</span>
@@ -97,7 +103,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   <Button 
                     variant="ghost"
                     className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent"
-                    onClick={() => handleNavigation('/dashboard?view=filter')}
+                    onClick={() => setMobileMenuOpen(false)}
                   >
                     <Filter size={20} className="mr-3 text-neon-cyan" />
                     <span className="font-mono tracking-wide">FILTER</span>
@@ -107,7 +113,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   <Button 
                     variant="ghost"
                     className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent"
-                    onClick={() => handleNavigation('/dashboard?view=tags')}
+                    onClick={() => setMobileMenuOpen(false)}
                   >
                     <Tag size={20} className="mr-3 text-neon-green" />
                     <span className="font-mono tracking-wide">TAGS</span>
@@ -117,7 +123,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   <Button 
                     variant="ghost"
                     className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent"
-                    onClick={() => handleNavigation('/dashboard?view=calendar')}
+                    onClick={() => setMobileMenuOpen(false)}
                   >
                     <Calendar size={20} className="mr-3 text-neon-pink" />
                     <span className="font-mono tracking-wide">CALENDAR</span>
@@ -130,7 +136,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   <Button 
                     variant="ghost"
                     className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent"
-                    onClick={() => handleNavigation('/dashboard')}
+                    onClick={() => setMobileMenuOpen(false)}
                   >
                     <LayoutDashboard size={20} className="mr-3 text-neon-purple" />
                     <span className="font-mono tracking-wide">DASHBOARD</span>
@@ -140,7 +146,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   <Button 
                     variant="ghost"
                     className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent"
-                    onClick={() => handleNavigation('/submit')}
+                    onClick={() => setMobileMenuOpen(false)}
                   >
                     <Tag size={20} className="mr-3 text-neon-blue" />
                     <span className="font-mono tracking-wide">SUBMIT PITCH</span>
@@ -174,7 +180,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       )}
       
       {/* Desktop Sidebar */}
-      {!isMobile && (
+      {!isMobile && isFounder && (
         <div 
           className={`${sidebarOpen ? 'w-64' : 'w-20'} transition-all duration-300 ease-in-out 
                    bg-sidebar z-50 h-screen flex flex-col glass-effect`}
@@ -202,104 +208,34 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </div>
           
           <nav className="flex-1 p-4">
-            {isInvestor ? (
-              <ul className="space-y-2">
-                <li>
-                  <Link 
-                    to="/dashboard" 
-                    className={`group flex items-center p-2 text-sidebar-foreground rounded-md 
-                              hover:bg-sidebar-accent transition-all duration-200
-                              ${location.pathname === '/dashboard' && !location.search ? 'bg-sidebar-accent' : ''}`}
-                  >
-                    <LayoutDashboard size={20} className="mr-3 text-neon-purple group-hover:text-neon-cyan transition-colors" />
-                    {sidebarOpen && (
-                      <span className="font-mono tracking-wide">DASHBOARD</span>
-                    )}
-                  </Link>
-                </li>
-                <li>
-                  <Link 
-                    to="/dashboard?view=search" 
-                    className={`group flex items-center p-2 text-sidebar-foreground rounded-md 
-                              hover:bg-sidebar-accent transition-all duration-200
-                              ${location.search === '?view=search' ? 'bg-sidebar-accent' : ''}`}
-                  >
-                    <Search size={20} className="mr-3 text-neon-blue group-hover:text-neon-cyan transition-colors" />
-                    {sidebarOpen && (
-                      <span className="font-mono tracking-wide">SEARCH</span>
-                    )}
-                  </Link>
-                </li>
-                <li>
-                  <Link 
-                    to="/dashboard?view=filter" 
-                    className={`group flex items-center p-2 text-sidebar-foreground rounded-md 
-                              hover:bg-sidebar-accent transition-all duration-200
-                              ${location.search === '?view=filter' ? 'bg-sidebar-accent' : ''}`}
-                  >
-                    <Filter size={20} className="mr-3 text-neon-cyan group-hover:text-neon-purple transition-colors" />
-                    {sidebarOpen && (
-                      <span className="font-mono tracking-wide">FILTER</span>
-                    )}
-                  </Link>
-                </li>
-                <li>
-                  <Link 
-                    to="/dashboard?view=tags" 
-                    className={`group flex items-center p-2 text-sidebar-foreground rounded-md 
-                              hover:bg-sidebar-accent transition-all duration-200
-                              ${location.search === '?view=tags' ? 'bg-sidebar-accent' : ''}`}
-                  >
-                    <Tag size={20} className="mr-3 text-neon-green group-hover:text-neon-cyan transition-colors" />
-                    {sidebarOpen && (
-                      <span className="font-mono tracking-wide">TAGS</span>
-                    )}
-                  </Link>
-                </li>
-                <li>
-                  <Link 
-                    to="/dashboard?view=calendar" 
-                    className={`group flex items-center p-2 text-sidebar-foreground rounded-md 
-                              hover:bg-sidebar-accent transition-all duration-200
-                              ${location.search === '?view=calendar' ? 'bg-sidebar-accent' : ''}`}
-                  >
-                    <Calendar size={20} className="mr-3 text-neon-pink group-hover:text-neon-cyan transition-colors" />
-                    {sidebarOpen && (
-                      <span className="font-mono tracking-wide">CALENDAR</span>
-                    )}
-                  </Link>
-                </li>
-              </ul>
-            ) : (
-              <ul className="space-y-2">
-                <li>
-                  <Link 
-                    to="/dashboard" 
-                    className={`group flex items-center p-2 text-sidebar-foreground rounded-md 
-                              hover:bg-sidebar-accent transition-all duration-200
-                              ${location.pathname === '/dashboard' ? 'bg-sidebar-accent' : ''}`}
-                  >
-                    <LayoutDashboard size={20} className="mr-3 text-neon-purple group-hover:text-neon-cyan transition-colors" />
-                    {sidebarOpen && (
-                      <span className="font-mono tracking-wide">DASHBOARD</span>
-                    )}
-                  </Link>
-                </li>
-                <li>
-                  <Link 
-                    to="/submit" 
-                    className={`group flex items-center p-2 text-sidebar-foreground rounded-md 
-                              hover:bg-sidebar-accent transition-all duration-200
-                              ${location.pathname === '/submit' ? 'bg-sidebar-accent' : ''}`}
-                  >
-                    <Tag size={20} className="mr-3 text-neon-blue group-hover:text-neon-cyan transition-colors" />
-                    {sidebarOpen && (
-                      <span className="font-mono tracking-wide">SUBMIT PITCH</span>
-                    )}
-                  </Link>
-                </li>
-              </ul>
-            )}
+            <ul className="space-y-2">
+              <li>
+                <Link 
+                  to="/dashboard" 
+                  className={`group flex items-center p-2 text-sidebar-foreground rounded-md 
+                            hover:bg-sidebar-accent transition-all duration-200
+                            ${location.pathname === '/dashboard' && !location.search ? 'bg-sidebar-accent' : ''}`}
+                >
+                  <LayoutDashboard size={20} className="mr-3 text-neon-purple group-hover:text-neon-cyan transition-colors" />
+                  {sidebarOpen && (
+                    <span className="font-mono tracking-wide">DASHBOARD</span>
+                  )}
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/submit" 
+                  className={`group flex items-center p-2 text-sidebar-foreground rounded-md 
+                            hover:bg-sidebar-accent transition-all duration-200
+                            ${location.pathname === '/submit' ? 'bg-sidebar-accent' : ''}`}
+                >
+                  <Tag size={20} className="mr-3 text-neon-blue group-hover:text-neon-cyan transition-colors" />
+                  {sidebarOpen && (
+                    <span className="font-mono tracking-wide">SUBMIT PITCH</span>
+                  )}
+                </Link>
+              </li>
+            </ul>
           </nav>
           
           <div className="p-4 border-t border-sidebar-border">
