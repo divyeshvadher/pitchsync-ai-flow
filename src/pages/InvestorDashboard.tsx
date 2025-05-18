@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -6,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
 import { getPitches } from '@/services/pitchGet';
-import { Pitch } from '@/services/types';
+import { Pitch } from '@/services/types/pitch';
 import MainLayout from '@/components/MainLayout';
 import { Button } from '@/components/ui/button';
 import {

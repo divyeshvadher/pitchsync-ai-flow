@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Pitch } from '@/services/types';
+import { Pitch } from '@/services/types/pitch';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Eye } from 'lucide-react';
 
