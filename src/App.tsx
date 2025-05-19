@@ -18,12 +18,12 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Web3InvestorDashboard from "./pages/Web3InvestorDashboard";
 import PortfolioPage from "./pages/PortfolioPage";
+import MessagesPage from "./pages/MessagesPage";
 
 // These are placeholder pages for the investor navigation
 const DealsPage = () => <InvestorDashboard />;
 const NotesPage = () => <div>Notes Page</div>;
 const AnalyticsPage = () => <div>Analytics Page</div>;
-const MessagesPage = () => <div>Messages Page</div>;
 const SettingsPage = () => <div>Settings Page</div>;
 
 const queryClient = new QueryClient();
@@ -102,7 +102,7 @@ const App = () => (
             <Route 
               path="/messages" 
               element={
-                <ProtectedRoute requiredRole="investor">
+                <ProtectedRoute>
                   <MessagesPage />
                 </ProtectedRoute>
               } 

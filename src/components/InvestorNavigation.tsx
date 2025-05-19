@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
+import UnreadMessagesBadge from '@/components/messaging/UnreadMessagesBadge';
 
 // Define the navigation items
 const navItems = [
@@ -43,7 +43,8 @@ const navItems = [
   { 
     path: '/messages', 
     label: 'Messages',
-    icon: MessageCircle 
+    icon: MessageCircle,
+    badge: UnreadMessagesBadge
   },
   { 
     path: '/settings', 
@@ -119,7 +120,10 @@ const InvestorNavigation: React.FC<InvestorNavigationProps> = ({ profile, signOu
                 }
                 onClick={closeMobileMenu}
               >
-                <item.icon className={`${isExpanded ? 'mr-3' : 'mx-auto'} h-5 w-5`} />
+                <div className={`${isExpanded ? 'mr-3' : 'mx-auto'} h-5 w-5 relative`}>
+                  <item.icon className="h-5 w-5" />
+                  {item.badge && <item.badge />}
+                </div>
                 {isExpanded && <span className="font-mono tracking-wide">{item.label}</span>}
               </NavLink>
             </li>
@@ -243,7 +247,10 @@ const InvestorNavigation: React.FC<InvestorNavigationProps> = ({ profile, signOu
                       }
                       onClick={closeMobileMenu}
                     >
-                      <item.icon className="mr-3 h-5 w-5" />
+                      <div className="mr-3 h-5 w-5 relative">
+                        <item.icon className="h-5 w-5" />
+                        {item.badge && <item.badge />}
+                      </div>
                       <span className="font-mono tracking-wide">{item.label}</span>
                     </NavLink>
                   </li>
