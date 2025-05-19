@@ -3,7 +3,7 @@ import { Pitch } from './types/pitch';
 import { mockPitches } from './mockData/pitchMockData';
 import { getPitches, getFounderPitches, getPitchById } from './pitchGet';
 import { createPitch } from './pitchCreate';
-import { updatePitchStatus } from './pitchUpdate';
+import { updatePitchStatus, getPitchFounderUserId } from './pitchUpdate';
 
 export type {
   Pitch,
@@ -15,5 +15,6 @@ export {
   getFounderPitches,
   getPitchById,
   createPitch,
-  updatePitchStatus
+  updatePitchStatus,
+  getPitchFounderUserId
 };

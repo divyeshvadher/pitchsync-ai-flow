@@ -15,8 +15,8 @@ export const getUserConversations = async (userId: string): Promise<Conversation
         content,
         created_at,
         read,
-        senders:profiles!sender_id(name, role),
-        receivers:profiles!receiver_id(name, role)
+        pitch_id,
+        profiles:profiles!sender_id(name, role)
       `)
       .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
       .order('created_at', { ascending: false });
@@ -26,11 +26,17 @@ export const getUserConversations = async (userId: string): Promise<Conversation
     // Group by conversation (other user)
     const conversationsMap = new Map<string, Conversation>();
     
-    messages?.forEach(msg => {
+    for (const msg of messages || []) {
       // Determine if the other user is the sender or receiver
       const isUserSender = msg.sender_id === userId;
       const otherUserId = isUserSender ? msg.receiver_id : msg.sender_id;
-      const otherUserData = isUserSender ? msg.receivers : msg.senders;
+      
+      // Fetch other user data
+      const { data: otherUserData } = await supabase
+        .from('profiles')
+        .select('name, role')
+        .eq('id', otherUserId)
+        .single();
       
       if (!conversationsMap.has(otherUserId)) {
         conversationsMap.set(otherUserId, {
@@ -42,11 +48,12 @@ export const getUserConversations = async (userId: string): Promise<Conversation
             id: msg.id,
             senderId: msg.sender_id,
             receiverId: msg.receiver_id,
+            pitchId: msg.pitch_id,
             content: msg.content,
             createdAt: msg.created_at,
             read: msg.read,
-            senderName: msg.senders?.name,
-            senderRole: msg.senders?.role
+            senderName: isUserSender ? otherUserData?.name : undefined,
+            senderRole: isUserSender ? otherUserData?.role : undefined
           },
           lastMessageDate: msg.created_at
         });
@@ -55,7 +62,7 @@ export const getUserConversations = async (userId: string): Promise<Conversation
         const conversation = conversationsMap.get(otherUserId)!;
         conversation.unreadCount += 1;
       }
-    });
+    }
     
     return Array.from(conversationsMap.values()).sort((a, b) => 
       new Date(b.lastMessageDate || '').getTime() - new Date(a.lastMessageDate || '').getTime()
@@ -79,7 +86,7 @@ export const getConversationMessages = async (userId: string, otherUserId: strin
         content,
         created_at,
         read,
-        senders:profiles!sender_id(name, role)
+        profiles:profiles!sender_id(name, role)
       `)
       .or(`and(sender_id.eq.${userId},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${userId})`)
       .order('created_at', { ascending: true });
@@ -87,7 +94,7 @@ export const getConversationMessages = async (userId: string, otherUserId: strin
     if (error) throw error;
     
     // Mark unread messages as read
-    const unreadMessageIds = data
+    const unreadMessageIds = (data || [])
       .filter(msg => msg.receiver_id === userId && !msg.read)
       .map(msg => msg.id);
     
@@ -98,7 +105,7 @@ export const getConversationMessages = async (userId: string, otherUserId: strin
         .in('id', unreadMessageIds);
     }
     
-    return data.map(msg => ({
+    return (data || []).map(msg => ({
       id: msg.id,
       senderId: msg.sender_id,
       receiverId: msg.receiver_id,
@@ -106,8 +113,8 @@ export const getConversationMessages = async (userId: string, otherUserId: strin
       content: msg.content,
       createdAt: msg.created_at,
       read: msg.read,
-      senderName: msg.senders?.name,
-      senderRole: msg.senders?.role
+      senderName: msg.profiles?.name,
+      senderRole: msg.profiles?.role
     }));
   } catch (error) {
     console.error('Error fetching conversation messages:', error);
@@ -127,7 +134,7 @@ export const sendMessage = async (senderId: string, receiverId: string, content:
         content,
         read: false
       })
-      .select('*')
+      .select()
       .single();
 
     if (error) throw error;
