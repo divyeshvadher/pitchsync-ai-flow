@@ -23,7 +23,7 @@ export const transformDatabasePitchToPitch = (pitch: any): Pitch => {
   
   // Get email from auth.users through a join or use an empty string if not available
   // This would require a proper join in the query that fetches the pitch data
-  const founderEmail = pitch.founder_email || '';
+  const founderEmail = pitch.profiles?.email || '';
 
   return {
     id: pitch.id,

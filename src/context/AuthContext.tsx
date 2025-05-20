@@ -9,6 +9,7 @@ export type UserRole = 'investor' | 'founder' | null;
 interface UserProfile {
   id: string;
   name: string;
+  email: string;
   role: UserRole;
 }
 
