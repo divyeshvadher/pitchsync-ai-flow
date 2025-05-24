@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { createPitch } from "@/services/pitchService";
-
+import { uploadPitchDeck, uploadPitchVideo } from "@/services/storageService";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -39,7 +39,10 @@ const formSchema = z.object({
   description: z.string().min(20, "Description must be at least 20 characters"),
   fundingStage: z.string().min(1, "Funding stage is required"),
   fundingAmount: z.string().min(1, "Funding amount is required"),
-  pitchDeckUrl: z.string().min(1, "Pitch deck is required"),
+  pitchDeckUrl: z.string().min(1, "Pitch deck is required").refine(
+    (url) => url !== "/placeholder.svg",
+    "Please upload a pitch deck"
+  ),
   videoUrl: z.string().optional(),
   answer1: z.string().min(10, "Answer must be at least 10 characters"),
   answer2: z.string().min(10, "Answer must be at least 10 characters"),
@@ -367,10 +370,26 @@ const FounderSubmission = () => {
                                   type="file"
                                   className="hidden"
                                   id="pitchDeckInput"
-                                  onChange={(e) => {
-                                    // In a real app, this would upload the file to storage
-                                    // For demo purposes, we're just using a placeholder value
-                                    field.onChange("/placeholder.svg");
+                                  accept=".pdf"
+                                  onChange={async (e) => {
+                                    try {
+                                      const file = e.target.files?.[0];
+                                      if (!file) return;
+                                      
+                                      const url = await uploadPitchDeck(file);
+                                      field.onChange(url);
+                                      
+                                      toast({
+                                        title: "Upload successful",
+                                        description: "Pitch deck uploaded successfully."
+                                      });
+                                    } catch (error: any) {
+                                      toast({
+                                        variant: "destructive",
+                                        title: "Upload failed",
+                                        description: error.message || "Failed to upload pitch deck."
+                                      });
+                                    }
                                   }}
                                 />
                                 <Button
@@ -382,12 +401,12 @@ const FounderSubmission = () => {
                                   Upload Pitch Deck
                                 </Button>
                                 <span className="mt-2 md:mt-0 md:ml-4 text-sm text-gray-500">
-                                  {field.value ? "File selected" : "No file selected"}
+                                  {field.value && field.value !== "/placeholder.svg" ? "PDF uploaded" : "No file selected"}
                                 </span>
                               </div>
                             </FormControl>
                             <FormDescription>
-                              Upload your pitch deck (PDF format recommended).
+                              Upload your pitch deck (PDF format, max 10MB).
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -406,10 +425,26 @@ const FounderSubmission = () => {
                                   type="file"
                                   className="hidden"
                                   id="videoInput"
-                                  onChange={(e) => {
-                                    // In a real app, this would upload the video to storage
-                                    // For demo purposes, we can set a dummy URL
-                                    field.onChange("https://example.com/video");
+                                  accept=".mp4,.mov,.avi"
+                                  onChange={async (e) => {
+                                    try {
+                                      const file = e.target.files?.[0];
+                                      if (!file) return;
+                                      
+                                      const url = await uploadPitchVideo(file);
+                                      field.onChange(url);
+                                      
+                                      toast({
+                                        title: "Upload successful",
+                                        description: "Video uploaded successfully."
+                                      });
+                                    } catch (error: any) {
+                                      toast({
+                                        variant: "destructive",
+                                        title: "Upload failed",
+                                        description: error.message || "Failed to upload video."
+                                      });
+                                    }
                                   }}
                                 />
                                 <Button
@@ -421,12 +456,12 @@ const FounderSubmission = () => {
                                   Upload Video
                                 </Button>
                                 <span className="mt-2 md:mt-0 md:ml-4 text-sm text-gray-500">
-                                  {field.value ? "File selected" : "No file selected"}
+                                  {field.value ? "Video uploaded" : "No file selected"}
                                 </span>
                               </div>
                             </FormControl>
                             <FormDescription>
-                              Upload a 2-minute video introduction (optional).
+                              Upload a 2-minute video introduction (MP4, MOV, or AVI, max 100MB).
                             </FormDescription>
                             <FormMessage />
                           </FormItem>

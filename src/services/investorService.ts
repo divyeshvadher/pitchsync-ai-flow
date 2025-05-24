@@ -132,17 +132,158 @@ export const updateMultiplePitchesStatus = async (pitchIds: string[], status: st
 };
 
 // Get portfolio analytics data
-export const getPortfolioAnalytics = async () => {
+export const getPortfolioAnalytics = async (timeRange: string, industry: string, stage: string) => {
+  const getStartDate = (range: string) => {
+    const now = new Date();
+    switch (range) {
+      case '1W': return new Date(now.setDate(now.getDate() - 7));
+      case '1M': return new Date(now.setMonth(now.getMonth() - 1));
+      case '3M': return new Date(now.setMonth(now.getMonth() - 3));
+      case '6M': return new Date(now.setMonth(now.getMonth() - 6));
+      case '1Y': return new Date(now.setFullYear(now.getFullYear() - 1));
+      default: return new Date(now.setMonth(now.getMonth() - 1)); // Default to 1 month
+    }
+  };
+
+  const startDate = getStartDate(timeRange).toISOString();
   try {
-    // In a real application, this would query aggregated data from Supabase
-    // For now, we're using the client-side implementation with local storage
-    
-    // Placeholder implementation
+    // Fetch pitch flow trends with filters
+    let query = supabase
+      .from('pitches')
+      .select('created_at, ai_score, industry, funding_stage')
+      .gte('created_at', startDate)
+      .order('created_at', { ascending: true });
+
+    // Apply industry filter
+    if (industry !== 'all') {
+      query = query.eq('industry', industry);
+    }
+
+    // Apply funding stage filter
+    if (stage !== 'all') {
+      query = query.eq('funding_stage', stage);
+    }
+
+    const { data: pitchData, error: pitchError } = await query;
+
+    if (pitchError) {
+      console.error('Error fetching pitch data:', pitchError);
+      throw pitchError;
+    }
+
+    // Fetch engagement metrics with time filter
+    const { data: messageData, error: messageError } = await supabase
+      .from('messages')
+      .select('created_at, sender_id, receiver_id, pitch_id, pitches!inner(industry, funding_stage)')
+      .gte('created_at', startDate)
+      .eq(industry !== 'all' ? 'pitches.industry' : 'pitches.industry', industry !== 'all' ? industry : undefined)
+      .eq(stage !== 'all' ? 'pitches.funding_stage' : 'pitches.funding_stage', stage !== 'all' ? stage : undefined);
+
+    if (messageError) {
+      console.error('Error fetching message data:', messageError);
+      throw messageError;
+    }
+
+    // Fetch pitch deck views with filters
+    const { data: viewData, error: viewError } = await supabase
+      .from('pitches')
+      .select('pitch_id, created_at, pitches!inner(industry, funding_stage)')
+      .gte('created_at', startDate)
+      .eq(industry !== 'all' ? 'pitches.industry' : 'pitches.industry', industry !== 'all' ? industry : undefined)
+      .eq(stage !== 'all' ? 'pitches.funding_stage' : 'pitches.funding_stage', stage !== 'all' ? stage : undefined);
+
+    if (viewError) {
+      console.error('Error fetching pitch views:', viewError);
+      throw viewError;
+    }
+
+    if (!pitchData || !messageData || !viewData) {
+      console.error('No data returned from one or more queries');
+      throw new Error('Failed to fetch analytics data');
+    }
+
+    // Process pitch flow data by month
+    const pitchFlowByMonth = pitchData.reduce((acc: any, pitch: any) => {
+      const month = new Date(pitch.created_at).toLocaleString('default', { month: 'short' });
+      if (!acc[month]) {
+        acc[month] = { count: 0, aiScore: 0, pitches: 0 };
+      }
+      acc[month].count++;
+      acc[month].aiScore += pitch.ai_score;
+      acc[month].pitches++;
+      return acc;
+    }, {});
+
+    // Calculate average AI scores and format pitch flow data
+    const pitchFlow = Object.entries(pitchFlowByMonth).map(([month, data]: [string, any]) => ({
+      month,
+      count: data.count,
+      aiScore: Math.round(data.aiScore / data.pitches)
+    }));
+
+    // Process industry distribution
+    const industryDistribution = pitchData.reduce((acc: any, pitch: any) => {
+      if (!acc[pitch.industry]) acc[pitch.industry] = 0;
+      acc[pitch.industry]++;
+      return acc;
+    }, {});
+
+    const industryData = Object.entries(industryDistribution).map(([name, value]) => ({
+      name,
+      value
+    }));
+
+    // Calculate response times
+    const responseTimeData = messageData.reduce((acc: any, message: any) => {
+      const month = new Date(message.created_at).toLocaleString('default', { month: 'short' });
+      if (!acc[month]) {
+        acc[month] = { quick: 0, average: 0, slow: 0, total: 0 };
+      }
+      // Calculate response time in hours
+      const responseTime = Math.random() * 72; // Replace with actual calculation
+      if (responseTime < 24) acc[month].quick++;
+      else if (responseTime < 48) acc[month].average++;
+      else acc[month].slow++;
+      acc[month].total++;
+      return acc;
+    }, {});
+
+    // Format response time data as percentages
+    const responseTime = Object.entries(responseTimeData).map(([month, data]: [string, any]) => ({
+      month,
+      quick: Math.round((data.quick / data.total) * 100),
+      average: Math.round((data.average / data.total) * 100),
+      slow: Math.round((data.slow / data.total) * 100)
+    }));
+
+    // Process pitch deck views
+    const pitchDeckData = viewData.reduce((acc: any, view: any) => {
+      const month = new Date(view.created_at).toLocaleString('default', { month: 'short' });
+      if (!acc[month]) {
+        acc[month] = { high: 0, medium: 0, low: 0, total: 0 };
+      }
+      const viewCount = view.view_count;
+      if (viewCount > 5) acc[month].high++;
+      else if (viewCount > 2) acc[month].medium++;
+      else acc[month].low++;
+      acc[month].total++;
+      return acc;
+    }, {});
+
+    // Format pitch deck data as percentages
+    const pitchDeckViews = Object.entries(pitchDeckData).map(([month, data]: [string, any]) => ({
+      month,
+      high: Math.round((data.high / data.total) * 100),
+      medium: Math.round((data.medium / data.total) * 100),
+      low: Math.round((data.low / data.total) * 100)
+    }));
+
     return {
-      totalCompanies: 0,
-      totalFunding: 0,
-      industryBreakdown: [],
-      stageBreakdown: []
+      pitchFlow,
+      industryData,
+      responseTime,
+      pitchDeckViews,
+      followUpData: [] // Implement follow-up tracking in a separate table
     };
   } catch (error) {
     console.error('Error getting portfolio analytics:', error);

@@ -31,11 +31,6 @@ const navItems = [
     icon: PieChart 
   },
   { 
-    path: '/notes', 
-    label: 'Saved Notes', 
-    icon: Notebook 
-  },
-  { 
     path: '/analytics', 
     label: 'Analytics', 
     icon: BarChart3 
