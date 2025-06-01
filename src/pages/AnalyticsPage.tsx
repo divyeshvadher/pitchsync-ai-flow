@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, PieChart, BarChart3, MessageCircle, Calendar, Filter } from 'lucide-react';
-import { getPortfolioAnalytics } from '@/services/investorService';
+import { getAnalyticsData } from '@/services/analyticsService';
 import PitchFlowChart from '@/components/analytics/PitchFlowChart';
 import IndustryDistributionChart from '@/components/analytics/IndustryDistributionChart';
 import EngagementMetricsChart from '@/components/analytics/EngagementMetricsChart';
@@ -20,7 +20,7 @@ const AnalyticsPage = () => {
 
   const { data: analyticsData, isLoading, error } = useQuery({
     queryKey: ['analytics', timeRange, industry, fundingStage],
-    queryFn: () => getPortfolioAnalytics(timeRange, industry, fundingStage),
+    queryFn: () => getAnalyticsData(timeRange, industry, fundingStage),
   });
 
   const timeRangeOptions = [
@@ -82,7 +82,7 @@ const AnalyticsPage = () => {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Portfolio Analytics</h1>
             <p className="text-muted-foreground">
-              Comprehensive insights into your investment pipeline and portfolio performance
+              Real-time insights into your investment pipeline and portfolio performance
             </p>
           </div>
           

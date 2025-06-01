@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Bar, BarChart } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Bar, BarChart, ComposedChart } from 'recharts';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 
 interface PitchFlowData {
@@ -28,7 +28,7 @@ const PitchFlowChart: React.FC<PitchFlowChartProps> = ({ data }) => {
   return (
     <ChartContainer config={chartConfig} className="h-80">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+        <ComposedChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
           <XAxis 
             dataKey="month" 
@@ -71,7 +71,7 @@ const PitchFlowChart: React.FC<PitchFlowChartProps> = ({ data }) => {
             dot={{ fill: '#82ca9d', strokeWidth: 2, r: 4 }}
             activeDot={{ r: 6, stroke: '#82ca9d', strokeWidth: 2 }}
           />
-        </LineChart>
+        </ComposedChart>
       </ResponsiveContainer>
     </ChartContainer>
   );

@@ -15,8 +15,7 @@ export const getUserConversations = async (userId: string): Promise<Conversation
         content,
         created_at,
         read,
-        pitch_id,
-        profiles:profiles!sender_id(name, role)
+        pitch_id
       `)
       .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
       .order('created_at', { ascending: false });
@@ -52,8 +51,8 @@ export const getUserConversations = async (userId: string): Promise<Conversation
             content: msg.content,
             createdAt: msg.created_at,
             read: msg.read,
-            senderName: isUserSender ? otherUserData?.name : undefined,
-            senderRole: isUserSender ? otherUserData?.role : undefined
+            senderName: otherUserData?.name,
+            senderRole: otherUserData?.role
           },
           lastMessageDate: msg.created_at
         });
@@ -85,8 +84,7 @@ export const getConversationMessages = async (userId: string, otherUserId: strin
         pitch_id,
         content,
         created_at,
-        read,
-        profiles:profiles!sender_id(name, role)
+        read
       `)
       .or(`and(sender_id.eq.${userId},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${userId})`)
       .order('created_at', { ascending: true });
@@ -105,17 +103,28 @@ export const getConversationMessages = async (userId: string, otherUserId: strin
         .in('id', unreadMessageIds);
     }
     
-    return (data || []).map(msg => ({
-      id: msg.id,
-      senderId: msg.sender_id,
-      receiverId: msg.receiver_id,
-      pitchId: msg.pitch_id,
-      content: msg.content,
-      createdAt: msg.created_at,
-      read: msg.read,
-      senderName: msg.profiles?.name,
-      senderRole: msg.profiles?.role
+    // Get sender details for each message
+    const messagesWithSenders = await Promise.all((data || []).map(async (msg) => {
+      const { data: senderData } = await supabase
+        .from('profiles')
+        .select('name, role')
+        .eq('id', msg.sender_id)
+        .single();
+      
+      return {
+        id: msg.id,
+        senderId: msg.sender_id,
+        receiverId: msg.receiver_id,
+        pitchId: msg.pitch_id,
+        content: msg.content,
+        createdAt: msg.created_at,
+        read: msg.read,
+        senderName: senderData?.name,
+        senderRole: senderData?.role
+      };
     }));
+    
+    return messagesWithSenders;
   } catch (error) {
     console.error('Error fetching conversation messages:', error);
     throw error;
