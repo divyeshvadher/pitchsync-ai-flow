@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,7 +18,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import Web3InvestorDashboard from "./pages/Web3InvestorDashboard";
 import PortfolioPage from "./pages/PortfolioPage";
 import MessagesPage from "./pages/MessagesPage";
-
+import AnalyticsPage from "./pages/AnalyticsPage";
 
 // These are placeholder pages for the investor navigation
 const DealsPage = () => {
@@ -109,6 +108,15 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <ProfilePage />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/analytics" 
+              element={
+                <ProtectedRoute requiredRole="investor">
+                  <AnalyticsPage />
                 </ProtectedRoute>
               } 
             />

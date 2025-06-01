@@ -30,7 +30,11 @@ const navItems = [
     label: 'My Portfolio', 
     icon: PieChart 
   },
-
+  { 
+    path: '/analytics', 
+    label: 'Analytics', 
+    icon: BarChart3 
+  },
   { 
     path: '/messages', 
     label: 'Messages',
