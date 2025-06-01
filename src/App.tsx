@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
 import InvestorDashboard from "./pages/InvestorDashboard";
 import FounderDashboard from "./pages/FounderDashboard";
@@ -19,11 +19,16 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import Web3InvestorDashboard from "./pages/Web3InvestorDashboard";
 import PortfolioPage from "./pages/PortfolioPage";
 import MessagesPage from "./pages/MessagesPage";
-import AnalyticsPage from "./pages/AnalyticsPage";
+
 
 // These are placeholder pages for the investor navigation
-const DealsPage = () => <InvestorDashboard />;
-const SettingsPage = () => <div>Settings Page</div>;
+const DealsPage = () => {
+  const [searchParams] = useSearchParams();
+  const view = searchParams.get('view');
+  
+  return view === 'web3' ? <Web3InvestorDashboard /> : <InvestorDashboard />;
+};
+import ProfilePage from "./pages/ProfilePage";
 
 const queryClient = new QueryClient();
 
@@ -90,14 +95,7 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
-            <Route 
-              path="/analytics" 
-              element={
-                <ProtectedRoute requiredRole="investor">
-                  <AnalyticsPage />
-                </ProtectedRoute>
-              } 
-            />
+
             <Route 
               path="/messages" 
               element={
@@ -109,8 +107,8 @@ const App = () => (
             <Route 
               path="/settings" 
               element={
-                <ProtectedRoute requiredRole="investor">
-                  <SettingsPage />
+                <ProtectedRoute>
+                  <ProfilePage />
                 </ProtectedRoute>
               } 
             />
@@ -127,17 +125,15 @@ const App = () => (
 function DashboardRouter() {
   const { isFounder, isInvestor } = useAuth();
   
-  // Redirect investors to the deals route
-  if (isInvestor) {
-    return <Navigate to="/deals" replace />;
-  }
-  
-  // Default to founder dashboard if user is founder
   if (isFounder) {
     return <FounderDashboard />;
   }
   
-  return <Web3InvestorDashboard />;
+  if (isInvestor) {
+    return <Navigate to="/deals" />;
+  }
+  
+  return <Navigate to="/" />;
 }
 
 export default App;
