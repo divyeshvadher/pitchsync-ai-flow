@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +19,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import Web3InvestorDashboard from "./pages/Web3InvestorDashboard";
 import PortfolioPage from "./pages/PortfolioPage";
 import MessagesPage from "./pages/MessagesPage";
+import FounderMessagesPage from "./pages/FounderMessagesPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 
 // These are placeholder pages for the investor navigation
@@ -99,7 +101,15 @@ const App = () => (
               path="/messages" 
               element={
                 <ProtectedRoute>
-                  <MessagesPage />
+                  <MessageRouter />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/founder-messages" 
+              element={
+                <ProtectedRoute requiredRole="founder">
+                  <FounderMessagesPage />
                 </ProtectedRoute>
               } 
             />
@@ -139,6 +149,21 @@ function DashboardRouter() {
   
   if (isInvestor) {
     return <Navigate to="/deals" />;
+  }
+  
+  return <Navigate to="/" />;
+}
+
+// Dynamic message router based on user role
+function MessageRouter() {
+  const { isFounder, isInvestor } = useAuth();
+  
+  if (isFounder) {
+    return <FounderMessagesPage />;
+  }
+  
+  if (isInvestor) {
+    return <MessagesPage />;
   }
   
   return <Navigate to="/" />;

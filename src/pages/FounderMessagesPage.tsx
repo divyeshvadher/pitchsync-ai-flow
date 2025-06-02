@@ -1,12 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useSearchParams } from 'react-router-dom';
 import MainLayout from '@/components/MainLayout';
-import ConversationList from '@/components/messaging/ConversationList';
+import EnhancedConversationList from '@/components/messaging/EnhancedConversationList';
 import MessageThreadView from '@/components/messaging/MessageThreadView';
 import { getUserConversations, getConversationMessages, sendMessage } from '@/services/messageService';
+import { getAllInvestors } from '@/services/userService';
 import { supabase } from '@/integrations/supabase/client';
 
 const FounderMessagesPage: React.FC = () => {
@@ -33,6 +35,16 @@ const FounderMessagesPage: React.FC = () => {
     queryKey: ['conversations', user?.id],
     queryFn: () => user?.id ? getUserConversations(user.id) : Promise.resolve([]),
     enabled: !!user?.id
+  });
+
+  // Get all investors for founders to message
+  const {
+    data: allInvestors,
+    isLoading: isLoadingInvestors
+  } = useQuery({
+    queryKey: ['allInvestors'],
+    queryFn: getAllInvestors,
+    enabled: user?.role === 'founder'
   });
   
   // Get messages for the selected conversation
@@ -62,6 +74,18 @@ const FounderMessagesPage: React.FC = () => {
         filter: `receiver_id=eq.${user.id}`
       }, () => {
         // Invalidate and refetch queries when a new message arrives
+        refetchConversations();
+        if (selectedContactId) {
+          refetchMessages();
+        }
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'messages',
+        filter: `receiver_id=eq.${user.id}`
+      }, () => {
+        // Refetch when messages are marked as read
         refetchConversations();
         if (selectedContactId) {
           refetchMessages();
@@ -98,7 +122,8 @@ const FounderMessagesPage: React.FC = () => {
   };
 
   // Find the selected contact information
-  const selectedContact = conversations?.find(c => c.userId === selectedContactId);
+  const selectedContact = conversations?.find(c => c.userId === selectedContactId) || 
+    allInvestors?.find(i => i.id === selectedContactId);
 
   return (
     <MainLayout>
@@ -106,21 +131,23 @@ const FounderMessagesPage: React.FC = () => {
         <h1 className="text-3xl font-bold mb-8">Messages</h1>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 h-[calc(100vh-240px)]">
-          {/* Conversations List */}
+          {/* Enhanced Conversations List */}
           <div className="md:col-span-1">
-            <ConversationList
+            <EnhancedConversationList
               conversations={conversations || []}
-              isLoading={isLoadingConversations}
+              allUsers={allInvestors || []}
+              isLoading={isLoadingConversations || isLoadingInvestors}
               selectedConversationId={selectedContactId || undefined}
               onSelectConversation={handleSelectConversation}
+              userRole="founder"
             />
           </div>
           
           {/* Message Thread */}
           <div className="md:col-span-2">
             <MessageThreadView
-              contactName={selectedContact?.userName || ''}
-              contactRole={selectedContact?.userRole || ''}
+              contactName={selectedContact?.name || selectedContact?.userName || ''}
+              contactRole={selectedContact?.role || selectedContact?.userRole || ''}
               messages={messages || []}
               isLoading={isLoadingMessages}
               onSendMessage={handleSendMessage}
