@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -22,6 +21,8 @@ const PitchActionButtons: React.FC<PitchActionButtonsProps> = ({ pitch, onStatus
   
   const handleStatusChange = async (status: Pitch['status']) => {
     try {
+      console.log('Handling status change:', status, 'for pitch:', pitch.id);
+      
       await submitPitchAction({
         pitchId: pitch.id,
         action: status as 'shortlisted' | 'rejected' | 'forwarded'
@@ -29,7 +30,7 @@ const PitchActionButtons: React.FC<PitchActionButtonsProps> = ({ pitch, onStatus
       
       toast({
         title: 'Status updated',
-        description: `The pitch has been marked as ${status}.`,
+        description: `The pitch has been marked as ${status}. The founder will be notified via email.`,
       });
       
       if (onStatusChange) {
@@ -39,7 +40,7 @@ const PitchActionButtons: React.FC<PitchActionButtonsProps> = ({ pitch, onStatus
       console.error('Error updating status:', error);
       toast({
         title: 'Error updating status',
-        description: 'There was a problem updating the pitch status.',
+        description: error instanceof Error ? error.message : 'There was a problem updating the pitch status.',
         variant: 'destructive',
       });
     }

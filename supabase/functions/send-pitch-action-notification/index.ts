@@ -3,8 +3,6 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 
-const resend = new Resend(Deno.env.get('RESEND_API_KEY') || '');
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -26,37 +24,89 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    console.log('=== Pitch Action Notification Function Started ===');
+    
+    // Check if Resend API key is available
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    if (!resendApiKey) {
+      console.error('RESEND_API_KEY environment variable is not set');
+      throw new Error('Email service not configured');
+    }
+    console.log('Resend API key found:', resendApiKey.substring(0, 10) + '...');
 
-    const { pitch_id, action, investor_id, founder_id, company_name, notes }: PitchActionRequest = await req.json();
+    // Initialize Resend with the API key
+    const resend = new Resend(resendApiKey);
 
-    console.log('Processing pitch action notification:', { pitch_id, action, investor_id, founder_id });
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Supabase environment variables missing');
+      throw new Error('Database service not configured');
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    console.log('Supabase client initialized');
+
+    // Parse request body
+    const requestBody = await req.json();
+    console.log('Request body received:', requestBody);
+    
+    const { pitch_id, action, investor_id, founder_id, company_name, notes }: PitchActionRequest = requestBody;
+
+    if (!pitch_id || !action || !investor_id || !founder_id || !company_name) {
+      console.error('Missing required fields in request');
+      throw new Error('Missing required fields');
+    }
+
+    console.log('Processing pitch action notification:', { 
+      pitch_id, 
+      action, 
+      investor_id: investor_id.substring(0, 8) + '...', 
+      founder_id: founder_id.substring(0, 8) + '...',
+      company_name 
+    });
 
     // Get investor and founder profiles
+    console.log('Fetching user profiles...');
     const [investorResult, founderResult] = await Promise.all([
       supabase.from('profiles').select('name').eq('id', investor_id).single(),
       supabase.from('profiles').select('name').eq('id', founder_id).single()
     ]);
 
-    if (investorResult.error || founderResult.error) {
-      console.error('Error fetching profiles:', investorResult.error, founderResult.error);
-      throw new Error('Failed to fetch user profiles');
+    if (investorResult.error) {
+      console.error('Error fetching investor profile:', investorResult.error);
+      throw new Error('Failed to fetch investor profile');
     }
 
-    const investorName = investorResult.data.name;
-    const founderName = founderResult.data.name;
+    if (founderResult.error) {
+      console.error('Error fetching founder profile:', founderResult.error);
+      throw new Error('Failed to fetch founder profile');
+    }
 
-    // Get founder's email
-    const { data: { user }, error: userError } = await supabase.auth.admin.getUserById(founder_id);
+    const investorName = investorResult.data?.name || 'An investor';
+    const founderName = founderResult.data?.name || 'Founder';
+    console.log('Profiles fetched - Investor:', investorName, 'Founder:', founderName);
+
+    // Get founder's email using admin method
+    console.log('Fetching founder email...');
+    const { data: userData, error: userError } = await supabase.auth.admin.getUserById(founder_id);
     
-    if (userError || !user?.email) {
-      console.error('Error fetching founder email:', userError);
-      throw new Error('Failed to fetch founder email');
+    if (userError) {
+      console.error('Error fetching founder user data:', userError);
+      throw new Error('Failed to fetch founder email: ' + userError.message);
     }
 
+    if (!userData.user?.email) {
+      console.error('No email found for founder:', founder_id);
+      throw new Error('Founder email not found');
+    }
+
+    const founderEmail = userData.user.email;
+    console.log('Founder email found:', founderEmail);
+
+    // Define action-specific email content
     const actionMessages = {
       shortlisted: {
         subject: `Great news! Your pitch for ${company_name} has been shortlisted`,
@@ -79,54 +129,93 @@ const handler = async (req: Request): Promise<Response> => {
     };
 
     const actionData = actionMessages[action];
-    const pitchUrl = `http://localhost:8080/pitch/${pitch_id}`;
+    if (!actionData) {
+      console.error('Invalid action provided:', action);
+      throw new Error('Invalid action type');
+    }
 
+    const pitchUrl = `${supabaseUrl.replace('.supabase.co', '')}/pitch/${pitch_id}`;
+    console.log('Pitch URL:', pitchUrl);
+
+    // Prepare email content
+    const emailHTML = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: ${actionData.color};">${actionData.title}</h2>
+        <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <p><strong>Company:</strong> ${company_name}</p>
+          <p><strong>Investor:</strong> ${investorName}</p>
+          <p style="margin-top: 15px;">${actionData.message}</p>
+          ${notes ? `
+            <div style="margin-top: 20px;">
+              <p><strong>Additional Notes:</strong></p>
+              <p style="background-color: white; padding: 15px; border-radius: 4px; border-left: 4px solid ${actionData.color};">
+                ${notes}
+              </p>
+            </div>
+          ` : ''}
+        </div>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${pitchUrl}" 
+             style="background-color: ${actionData.color}; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+            View Your Pitch
+          </a>
+        </div>
+        <p style="color: #666; font-size: 12px;">
+          This is an automated message from PitchFlow. Please do not reply to this email.
+        </p>
+      </div>
+    `;
+
+    // Send email using Resend
+    console.log('Sending email to:', founderEmail);
+    console.log('Email subject:', actionData.subject);
+    
     const emailResponse = await resend.emails.send({
       from: "PitchFlow <notifications@resend.dev>",
-      to: [user.email],
+      to: [founderEmail],
       subject: actionData.subject,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: ${actionData.color};">${actionData.title}</h2>
-          <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <p><strong>Company:</strong> ${company_name}</p>
-            <p><strong>Investor:</strong> ${investorName}</p>
-            <p style="margin-top: 15px;">${actionData.message}</p>
-            ${notes ? `
-              <div style="margin-top: 20px;">
-                <p><strong>Additional Notes:</strong></p>
-                <p style="background-color: white; padding: 15px; border-radius: 4px; border-left: 4px solid ${actionData.color};">
-                  ${notes}
-                </p>
-              </div>
-            ` : ''}
-          </div>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${pitchUrl}" 
-               style="background-color: ${actionData.color}; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
-              View Your Pitch
-            </a>
-          </div>
-          <p style="color: #666; font-size: 12px;">
-            This is an automated message from PitchFlow. Please do not reply to this email.
-          </p>
-        </div>
-      `,
+      html: emailHTML,
     });
 
-    console.log("Pitch action email sent successfully:", emailResponse);
+    console.log("Email send response:", emailResponse);
 
-    return new Response(JSON.stringify({ success: true, emailResponse }), {
+    // Check if email was sent successfully
+    if (emailResponse.error) {
+      console.error("Email sending failed:", emailResponse.error);
+      throw new Error(`Email sending failed: ${emailResponse.error.message}`);
+    }
+
+    if (!emailResponse.data || !emailResponse.data.id) {
+      console.error("Email response missing data or ID");
+      throw new Error("Email sending failed - no confirmation received");
+    }
+
+    console.log("Email sent successfully with ID:", emailResponse.data.id);
+
+    return new Response(JSON.stringify({ 
+      success: true, 
+      emailId: emailResponse.data.id,
+      message: 'Email notification sent successfully'
+    }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
         ...corsHeaders,
       },
     });
+    
   } catch (error: any) {
-    console.error("Error in send-pitch-action-notification function:", error);
+    console.error("=== Error in send-pitch-action-notification function ===");
+    console.error("Error details:", error);
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        success: false,
+        details: error.stack
+      }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
