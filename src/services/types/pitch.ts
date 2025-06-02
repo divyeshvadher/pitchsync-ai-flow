@@ -1,6 +1,7 @@
 
 export interface Pitch {
   id: string;
+  userId?: string;
   companyName: string;
   founderName: string;
   email: string;
