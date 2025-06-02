@@ -5,7 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Check, X, Send, MessageCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { updatePitchStatus, getPitchFounderUserId } from '@/services/pitchUpdate';
+import { getPitchFounderUserId } from '@/services/pitchUpdate';
+import { submitPitchAction } from '@/services/pitchActionService';
 import { Pitch } from '@/services/types/pitch';
 
 interface PitchActionButtonsProps {
@@ -21,7 +22,11 @@ const PitchActionButtons: React.FC<PitchActionButtonsProps> = ({ pitch, onStatus
   
   const handleStatusChange = async (status: Pitch['status']) => {
     try {
-      await updatePitchStatus(pitch.id, status);
+      await submitPitchAction({
+        pitchId: pitch.id,
+        action: status as 'shortlisted' | 'rejected' | 'forwarded'
+      });
+      
       toast({
         title: 'Status updated',
         description: `The pitch has been marked as ${status}.`,
