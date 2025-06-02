@@ -67,10 +67,30 @@ const PitchActionButtons: React.FC<PitchActionButtonsProps> = ({ pitch, onStatus
   
   const handleMessageFounder = async () => {
     try {
-      const founderUserId = await getPitchFounderUserId(pitch.id);
+      console.log('=== MESSAGE FOUNDER CLICKED ===');
+      console.log('Pitch ID:', pitch.id);
+      console.log('Current user:', user?.id, user?.role);
+      
+      // Use the pitch's user_id directly if available, otherwise fetch it
+      let founderUserId = pitch.userId;
+      
+      if (!founderUserId) {
+        console.log('No direct user_id, fetching founder user ID...');
+        founderUserId = await getPitchFounderUserId(pitch.id);
+      }
+      
+      console.log('Founder User ID:', founderUserId);
+      
       if (founderUserId) {
         // Navigate to messages page with the founder's user ID
-        navigate(`/messages?contact=${founderUserId}`);
+        const messagesPath = user?.role === 'investor' ? '/messages' : '/founder-messages';
+        navigate(`${messagesPath}?contact=${founderUserId}`);
+        
+        toast({
+          title: 'Opening conversation',
+          description: `Starting conversation with ${pitch.companyName} founder.`,
+          variant: 'default',
+        });
       } else {
         toast({
           title: 'Cannot message founder',
@@ -79,6 +99,7 @@ const PitchActionButtons: React.FC<PitchActionButtonsProps> = ({ pitch, onStatus
         });
       }
     } catch (error) {
+      console.error('=== MESSAGE FOUNDER ERROR ===');
       console.error('Error getting founder ID:', error);
       toast({
         title: 'Error',

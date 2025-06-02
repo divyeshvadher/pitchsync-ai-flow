@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { useSearchParams } from 'react-router-dom';
 import MainLayout from '@/components/MainLayout';
 import ConversationList from '@/components/messaging/ConversationList';
 import MessageThreadView from '@/components/messaging/MessageThreadView';
@@ -12,7 +13,16 @@ const FounderMessagesPage: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
+  
+  // Check if there's a contact parameter in the URL
+  useEffect(() => {
+    const contactParam = searchParams.get('contact');
+    if (contactParam) {
+      setSelectedContactId(contactParam);
+    }
+  }, [searchParams]);
   
   // Get all conversations
   const {
@@ -49,7 +59,7 @@ const FounderMessagesPage: React.FC = () => {
         event: 'INSERT',
         schema: 'public',
         table: 'messages',
-        filter: `receiverId=eq.${user.id}`
+        filter: `receiver_id=eq.${user.id}`
       }, () => {
         // Invalidate and refetch queries when a new message arrives
         refetchConversations();
@@ -63,8 +73,6 @@ const FounderMessagesPage: React.FC = () => {
       supabase.removeChannel(channel);
     };
   }, [user?.id, selectedContactId, refetchConversations, refetchMessages]);
-
-
 
   // Handle conversation selection
   const handleSelectConversation = (contactId: string) => {

@@ -1,10 +1,12 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Message, Conversation } from './types/message';
 
 // Get all conversations for a user
 export const getUserConversations = async (userId: string): Promise<Conversation[]> => {
   try {
+    console.log('=== FETCHING USER CONVERSATIONS ===');
+    console.log('User ID:', userId);
+    
     // Get all messages where the user is either the sender or receiver
     const { data: messages, error } = await supabase
       .from('messages')
@@ -20,7 +22,12 @@ export const getUserConversations = async (userId: string): Promise<Conversation
       .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching messages:', error);
+      throw error;
+    }
+
+    console.log('Messages found:', messages?.length || 0);
 
     // Group by conversation (other user)
     const conversationsMap = new Map<string, Conversation>();
@@ -31,11 +38,15 @@ export const getUserConversations = async (userId: string): Promise<Conversation
       const otherUserId = isUserSender ? msg.receiver_id : msg.sender_id;
       
       // Fetch other user data
-      const { data: otherUserData } = await supabase
+      const { data: otherUserData, error: userError } = await supabase
         .from('profiles')
         .select('name, role')
         .eq('id', otherUserId)
         .single();
+      
+      if (userError) {
+        console.warn('Error fetching user profile:', userError);
+      }
       
       if (!conversationsMap.has(otherUserId)) {
         conversationsMap.set(otherUserId, {
@@ -63,9 +74,12 @@ export const getUserConversations = async (userId: string): Promise<Conversation
       }
     }
     
-    return Array.from(conversationsMap.values()).sort((a, b) => 
+    const conversations = Array.from(conversationsMap.values()).sort((a, b) => 
       new Date(b.lastMessageDate || '').getTime() - new Date(a.lastMessageDate || '').getTime()
     );
+    
+    console.log('Conversations processed:', conversations.length);
+    return conversations;
   } catch (error) {
     console.error('Error fetching user conversations:', error);
     throw error;
@@ -75,6 +89,9 @@ export const getUserConversations = async (userId: string): Promise<Conversation
 // Get messages between two users
 export const getConversationMessages = async (userId: string, otherUserId: string): Promise<Message[]> => {
   try {
+    console.log('=== FETCHING CONVERSATION MESSAGES ===');
+    console.log('User ID:', userId, 'Other User ID:', otherUserId);
+    
     const { data, error } = await supabase
       .from('messages')
       .select(`
@@ -89,7 +106,12 @@ export const getConversationMessages = async (userId: string, otherUserId: strin
       .or(`and(sender_id.eq.${userId},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${userId})`)
       .order('created_at', { ascending: true });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching conversation messages:', error);
+      throw error;
+    }
+    
+    console.log('Messages found:', data?.length || 0);
     
     // Mark unread messages as read
     const unreadMessageIds = (data || [])
@@ -97,10 +119,15 @@ export const getConversationMessages = async (userId: string, otherUserId: strin
       .map(msg => msg.id);
     
     if (unreadMessageIds.length > 0) {
-      await supabase
+      console.log('Marking messages as read:', unreadMessageIds.length);
+      const { error: updateError } = await supabase
         .from('messages')
         .update({ read: true })
         .in('id', unreadMessageIds);
+        
+      if (updateError) {
+        console.error('Error marking messages as read:', updateError);
+      }
     }
     
     // Get sender details for each message
@@ -134,6 +161,9 @@ export const getConversationMessages = async (userId: string, otherUserId: strin
 // Send a new message
 export const sendMessage = async (senderId: string, receiverId: string, content: string, pitchId?: string): Promise<Message> => {
   try {
+    console.log('=== SENDING MESSAGE ===');
+    console.log('From:', senderId, 'To:', receiverId, 'Content:', content.substring(0, 50) + '...');
+    
     const { data, error } = await supabase
       .from('messages')
       .insert({
@@ -146,7 +176,12 @@ export const sendMessage = async (senderId: string, receiverId: string, content:
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error sending message:', error);
+      throw error;
+    }
+    
+    console.log('Message sent successfully:', data.id);
     
     return {
       id: data.id,
