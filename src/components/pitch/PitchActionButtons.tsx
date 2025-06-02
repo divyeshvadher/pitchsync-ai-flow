@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -21,22 +22,40 @@ const PitchActionButtons: React.FC<PitchActionButtonsProps> = ({ pitch, onStatus
   
   const handleStatusChange = async (status: Pitch['status']) => {
     try {
-      console.log('Handling status change:', status, 'for pitch:', pitch.id);
+      console.log('=== PITCH ACTION BUTTON CLICKED ===');
+      console.log('Status:', status, 'Pitch ID:', pitch.id);
       
-      await submitPitchAction({
+      const result = await submitPitchAction({
         pitchId: pitch.id,
         action: status as 'shortlisted' | 'rejected' | 'forwarded'
       });
       
-      toast({
-        title: 'Status updated',
-        description: `The pitch has been marked as ${status}. The founder will be notified via email.`,
-      });
+      console.log('=== PITCH ACTION RESULT ===');
+      console.log('Result:', result);
       
-      if (onStatusChange) {
-        onStatusChange(status);
+      if (result.success) {
+        let description = `The pitch has been marked as ${status}.`;
+        
+        if (result.emailSent) {
+          description += ' The founder has been notified via email.';
+        } else if (result.emailError) {
+          description += ` Note: Email notification failed (${result.emailError}).`;
+        } else {
+          description += ' Note: Email notification status unknown.';
+        }
+        
+        toast({
+          title: 'Status updated',
+          description,
+          variant: result.emailSent ? 'default' : 'destructive'
+        });
+        
+        if (onStatusChange) {
+          onStatusChange(status);
+        }
       }
     } catch (error) {
+      console.error('=== PITCH ACTION BUTTON ERROR ===');
       console.error('Error updating status:', error);
       toast({
         title: 'Error updating status',
